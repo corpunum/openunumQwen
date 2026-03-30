@@ -273,7 +273,9 @@ Task: ${task}`;
 
       try {
         if (step.tool && step.tool !== 'none') {
-          const result = await this.executeTool(step.tool, { task, step });
+          // Generate tool parameters via model
+          const toolArgs = await this.generateToolArgs(step, task, results);
+          const result = await this.executeTool(step.tool, toolArgs);
           results.push({ step: step.step, tool: step.tool, result, status: 'success' });
           console.log(`[Agent] Step ${step.step} complete: ${step.action}`);
         } else {
