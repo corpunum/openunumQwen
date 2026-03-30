@@ -273,7 +273,7 @@ Task: ${task}`;
 
       try {
         if (step.tool && step.tool !== 'none') {
-          const result = await this.executeTool(step.tool, { ...args, task, step });
+          const result = await this.executeTool(step.tool, { task, step });
           results.push({ step: step.step, tool: step.tool, result, status: 'success' });
           console.log(`[Agent] Step ${step.step} complete: ${step.action}`);
         } else {
