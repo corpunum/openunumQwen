@@ -142,6 +142,50 @@ Task: ${task}`;
     }
   }
 
+  async generateToolArgs(step, task, results) {
+    const toolDescriptions = {
+      shell_exec: '{ command: string, timeout?: number, cwd?: string }',
+      file_write: '{ path: string, content: string }',
+      file_read: '{ path: string }',
+      git_status: '{}',
+      git_commit: '{ message: string }',
+      git_push: '{}',
+      memory_store: '{ text: string }',
+      memory_search: '{ query: string, topK?: number }',
+      health_check: '{}',
+      browser_navigate: '{ url: string }',
+      browser_screenshot: '{}',
+      browser_get_links: '{}'
+    };
+
+    const argsPrompt = `Generate tool arguments for this step:
+Step: ${step.action}
+Tool: ${step.tool}
+Task: ${task}
+Previous results: ${JSON.stringify(results.slice(-2))}
+
+Return ONLY JSON matching this schema: ${toolDescriptions[step.tool] || '{}'}
+
+Example for shell_exec: {"command": "ls -la"}
+Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
+
+    try {
+      const response = await this.callModel(
+        this.buildSystemPrompt(task, this.sessionHistory),
+        argsPrompt,
+        { temperature: 0.2, maxTokens: 500 }
+      );
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      return {};
+    } catch (e) {
+      console.warn('[Args] Failed to generate args:', e.message);
+      return {};
+    }
+  }
+
   async callModel(systemPrompt, userPrompt, options = {}) {
     if (!this.providerHealthy) {
       const recovered = await this.tryFailover();
