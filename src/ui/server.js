@@ -1,0 +1,166 @@
+/**
+ * Lightweight WebUI Server
+ * Fixes: No monolithic file, proper ESM, clean separation
+ */
+
+import { createServer } from 'node:http';
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { WebSocketServer } from 'ws';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, '..', '..');
+
+function getContentType(path) {
+  const ext = extname(path).toLowerCase();
+  const types = {
+    '.html': 'text/html',
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.svg': 'image/svg+xml'
+  };
+  return types[ext] || 'text/plain';
+}
+
+export async function startServer(agent, config) {
+  const server = createServer(async (req, res) => {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    
+    // API routes
+    if (url.pathname.startsWith('/api/')) {
+      try {
+        const result = await handleApiRequest(url, req, agent, config);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+      return;
+    }
+
+    // Static files
+    let filePath = url.pathname === '/' ? '/index.html' : url.pathname;
+    filePath = join(ROOT, 'ui', 'public', filePath);
+
+    if (!existsSync(filePath)) {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
+
+    try {
+      const content = readFileSync(filePath);
+      res.writeHead(200, { 'Content-Type': getContentType(filePath) });
+      res.end(content);
+    } catch (e) {
+      res.writeHead(500);
+      res.end('Error reading file');
+    }
+  });
+
+  // WebSocket for real-time chat
+  const wss = new WebSocketServer({ server, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('[WS] Client connected');
+    
+    ws.on('message', async (data) => {
+      try {
+        const message = JSON.parse(data);
+        console.log('[WS] Message:', message.type);
+        
+        if (message.type === 'chat') {
+          ws.send(JSON.stringify({ type: 'status', text: 'Thinking...' }));
+          
+          const result = await agent.run(message.task, { stream: true });
+          
+          ws.send(JSON.stringify({
+            type: 'result',
+            result
+          }));
+        } else if (message.type === 'health') {
+          const health = await agent.runHealthCheck();
+          ws.send(JSON.stringify({ type: 'health', status: health }));
+        }
+      } catch (e) {
+        ws.send(JSON.stringify({ type: 'error', error: e.message }));
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('[WS] Client disconnected');
+    });
+  });
+
+  return new Promise((resolve, reject) => {
+    server.listen(config.uiPort, config.uiHost, (err) => {
+      if (err) reject(err);
+      else resolve({
+        close: () => {
+          wss.close();
+          return new Promise(r => server.close(r));
+        }
+      });
+    });
+  });
+}
+
+async function handleApiRequest(url, req, agent, config) {
+  const pathname = url.pathname;
+  const method = req.method;
+
+  if (pathname === '/api/chat' && method === 'POST') {
+    const body = await readRequestBody(req);
+    const result = await agent.run(body.task);
+    return result;
+  }
+
+  if (pathname === '/api/health' && method === 'GET') {
+    const health = await agent.runHealthCheck();
+    return health;
+  }
+
+  if (pathname === '/api/config' && method === 'GET') {
+    return getConfig();
+  }
+
+  if (pathname === '/api/config' && method === 'PUT') {
+    const body = await readRequestBody(req);
+    const updated = await import('../core/config.js').then(m => m.updateConfig(body));
+    return updated;
+  }
+
+  if (pathname === '/api/memory' && method === 'POST') {
+    const body = await readRequestBody(req);
+    const { MemoryTool } = await import('../tools/memory.js');
+    return await MemoryTool.store(body);
+  }
+
+  if (pathname === '/api/memory' && method === 'GET') {
+    const query = url.searchParams.get('q');
+    const { MemoryTool } = await import('../tools/memory.js');
+    return await MemoryTool.search({ query: query || '', topK: 10 });
+  }
+
+  throw new Error('Unknown API route');
+}
+
+function readRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(body));
+      } catch (e) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', reject);
+  });
+}

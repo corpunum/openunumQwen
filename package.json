@@ -1,0 +1,31 @@
+{
+  "name": "openunum-qwen",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The Ultimate Autonomous Assistant",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node tests/run.js",
+    "sync": "node scripts/git-sync.js",
+    "health": "node scripts/health-check.js",
+    "init": "node scripts/init.js"
+  },
+  "keywords": ["autonomous", "agent", "ai", "self-healing"],
+  "author": "Antonis",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2",
+    "playwright": "^1.45.0",
+    "ws": "^8.18.0",
+    "better-sqlite3": "^11.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
