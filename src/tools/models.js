@@ -30,11 +30,16 @@ export const ModelsTool = {
           
           // Parse: NAME         ID              SIZE      MODIFIED
           // Example: uncensored:latest    36683e6752e9    4.7 GB    21 hours ago
-          const match = line.match(/^(\S+)\s+(\S+)\s+(\d+(?:\.\d+)?)\s+(GB|MB|KB)\s+(.+)$/);
+          // Cloud models: qwen3.5:397b-cloud    a7bf6f7891c3    -         4 days ago
+          const match = line.match(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.+)$/);
           if (match) {
             const name = match[1];
-            const size = `${match[3]} ${match[4]}`;
+            const sizeVal = match[3];
+            const sizeUnit = match[4];
             const modified = match[5].trim();
+            
+            // Handle cloud models (size = "-")
+            const size = sizeVal === '-' ? 'Cloud' : `${sizeVal} ${sizeUnit}`;
             
             // Get more details via ollama show
             const details = await this.getModelDetails(name);
