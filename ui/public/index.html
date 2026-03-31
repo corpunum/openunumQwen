@@ -67,28 +67,29 @@
     .health-dot.degraded { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
     .health-dot.unhealthy { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
     
-    /* Chat Area - Fixed, Centered */
+    /* Chat Area - Fixed, Centered, Scrollable */
     .chat-container { 
-      flex: 1; 
       display: flex; 
       flex-direction: column; 
-      padding: 30px; 
+      padding: 20px 30px; 
       max-width: 900px; 
       margin: 0 auto; 
       width: 100%;
-      height: calc(100vh - 70px); /* Full height minus header */
-      overflow: hidden;
+      height: calc(100vh - 70px); /* Full viewport height minus header */
     }
     .messages { 
       flex: 1; 
       overflow-y: auto; 
-      margin-bottom: 20px; 
-      padding-right: 10px;
+      overflow-x: hidden;
+      margin-bottom: 16px; 
+      padding: 10px;
+      min-height: 0; /* Critical for flex scrolling */
     }
-    .messages::-webkit-scrollbar { width: 6px; }
-    .messages::-webkit-scrollbar-track { background: var(--bg2); border-radius: 3px; }
-    .messages::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+    .messages::-webkit-scrollbar { width: 8px; }
+    .messages::-webkit-scrollbar-track { background: var(--bg2); border-radius: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; border: 2px solid var(--bg2); }
     .messages::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    .messages::-webkit-scrollbar-corner { background: var(--bg2); }
     .message {
       margin-bottom: 16px;
       padding: 14px 18px;
