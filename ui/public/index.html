@@ -188,9 +188,14 @@
     <main class="main">
       <header class="header">
         <h2 id="panel-title">Chat</h2>
-        <div class="health-indicator">
-          <div class="health-dot" id="health-dot"></div>
-          <span id="health-text">Checking...</span>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <div class="health-indicator">
+            <div class="health-dot" id="health-dot"></div>
+            <span id="health-text">Checking...</span>
+          </div>
+          <div id="context-usage" style="font-size:0.85em;color:var(--muted);">
+            Context: <span id="context-percent">--</span>%
+          </div>
         </div>
       </header>
 
