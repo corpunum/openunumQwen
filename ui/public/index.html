@@ -386,9 +386,17 @@
       div.className = `message ${role}`;
       div.innerHTML = content;
       messagesEl.appendChild(div);
-      // Scroll to bottom with smooth behavior
+      
+      // Force scroll capability
+      messagesEl.classList.add('force-scroll');
+      
+      // Scroll to bottom
       messagesEl.classList.add('auto-scroll');
       messagesEl.scrollTop = messagesEl.scrollHeight;
+      
+      // Debug: log scroll info
+      console.log('[Chat] Message added, scrollTop:', messagesEl.scrollTop, 'scrollHeight:', messagesEl.scrollHeight);
+      
       setTimeout(() => messagesEl.classList.remove('auto-scroll'), 500);
     }
 
