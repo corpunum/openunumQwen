@@ -121,8 +121,8 @@ async function handleApiRequest(url, req, agent, config) {
   }
 
   if (pathname === '/api/health' && method === 'GET') {
-    const health = await agent.runHealthCheck();
-    return health;
+    const { HealthTool } = await import('../tools/health.js');
+    return await HealthTool.check({}, config);
   }
 
   if (pathname === '/api/config' && method === 'GET') {
