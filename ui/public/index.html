@@ -411,7 +411,7 @@
       return 0;
     }
 
-    // Save chat history to localStorage
+    // Save chat history to localStorage (fallback for session persistence)
     function saveChatHistory() {
       try {
         const messages = Array.from(messagesEl.querySelectorAll('.message')).map(msg => ({
@@ -424,10 +424,9 @@
       }
     }
 
-    // Clear chat history
+    // Clear chat history (now creates new session instead)
     function clearChatHistory() {
-      localStorage.removeItem(CHAT_STORAGE_KEY);
-      messagesEl.innerHTML = '';
+      createNewSession();
     }
 
     // Connect WebSocket
