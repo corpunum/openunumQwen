@@ -322,6 +322,10 @@
         addMessage('ai', formatResult(data.result));
         sendBtn.disabled = false;
         saveChatHistory();
+        // Update context stats after receiving result
+        if (data.result.contextUsage) {
+          updateContextStats();
+        }
       } else if (data.type === 'error') {
         addMessage('system', 'Error: ' + data.error);
         sendBtn.disabled = false;
