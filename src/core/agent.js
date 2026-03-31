@@ -8,10 +8,10 @@ import { loadConfig, getConfig } from './config.js';
 import { CircuitBreaker } from '../health/circuit-breaker.js';
 import { MemoryManager } from '../memory/memory.js';
 
-const MAX_ITERATIONS = 20;
+const MAX_ITERATIONS = 50;
 const MAX_TOOL_FAILURES = 3;
 const MAX_TOOL_REPEATS = 3;
-const MAX_TOOL_USES = 8;
+const MAX_TOOL_USES = 12;
 
 export class Agent {
   constructor(options = {}) {
