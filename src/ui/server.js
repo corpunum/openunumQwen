@@ -226,6 +226,14 @@ async function handleApiRequest(url, req, agent, config) {
     return { success: true, message: `${message}, ${pushResult.output || 'pushed'}` };
   }
 
+  if (pathname === '/api/context-stats' && method === 'GET') {
+    return agent.getContextStats();
+  }
+
+  if (pathname === '/api/chat/clear' && method === 'POST') {
+    return agent.clearHistory();
+  }
+
   throw new Error('Unknown API route');
 }
 
