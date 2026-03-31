@@ -369,14 +369,20 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
   async run(task, options = {}) {
     await this.initialize();
     
+    // Ensure we have a session
+    if (!this.sessionManager.currentSessionId) {
+      this.sessionManager.createSession();
+    }
+    
     // Check context usage and compact if needed BEFORE processing
     const compactionResult = await this.ensureContextCapacity();
     if (compactionResult.compacted) {
       console.log('[Agent] Context was compacted, summary saved to memory');
     }
     
-    // Add user message to history
+    // Add user message to history and persist to session
     this.sessionHistory.push({ role: 'user', content: task });
+    this.sessionManager.addMessage('user', task);
     
     const plan = await this.plan(task, this.sessionHistory);
     console.log('[Agent] Plan:', JSON.stringify(plan, null, 2));
