@@ -425,8 +425,17 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
     // Generate final response for the user
     const finalResponse = await this.generateFinalResponse(task, results);
     
+    // Add agent response to history
+    this.sessionHistory.push({ role: 'assistant', content: finalResponse });
+    
     // Verify completion
     const completionCheck = await this.verifyCompletion(task, results);
+    
+    // Check context again after adding response - may need immediate compaction
+    const postRunStatus = this.contextManager.shouldCompact(this.sessionHistory);
+    if (postRunStatus.needsCompaction) {
+      console.log(`[Agent] Post-run context at ${Math.round(postRunStatus.usagePercent * 100)}% - will compact on next run`);
+    }
     
     return {
       task,
@@ -435,8 +444,38 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
       completed: completionCheck.completed,
       proof: completionCheck.proof,
       iterations: this.iterationCount,
-      answer: finalResponse
+      answer: finalResponse,
+      contextUsage: {
+        percent: postRunStatus.usagePercent,
+        tokens: postRunStatus.usedTokens,
+        window: postRunStatus.contextWindow
+      }
     };
+  }
+
+  /**
+   * Get current context usage stats (for UI display)
+   */
+  getContextStats() {
+    const status = this.contextManager.shouldCompact(this.sessionHistory);
+    return {
+      usagePercent: Math.round(status.usagePercent * 100),
+      usedTokens: status.usedTokens,
+      contextWindow: status.contextWindow,
+      availableTokens: status.contextWindow - status.usedTokens,
+      needsCompaction: status.needsCompaction,
+      messageCount: this.sessionHistory.length
+    };
+  }
+
+  /**
+   * Clear session history (for /new command)
+   */
+  clearHistory() {
+    const count = this.sessionHistory.length;
+    this.sessionHistory = [];
+    console.log(`[Agent] Cleared ${count} messages from session history`);
+    return { cleared: true, previousCount: count };
   }
 
   async generateFinalResponse(task, results) {
