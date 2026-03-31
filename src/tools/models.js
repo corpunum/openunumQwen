@@ -29,11 +29,12 @@ export const ModelsTool = {
           if (!line.trim()) continue;
           
           // Parse: NAME         ID              SIZE      MODIFIED
-          const parts = line.split(/\s+/);
-          if (parts.length >= 4) {
-            const name = parts[0];
-            const size = parts[2];
-            const modified = parts[3];
+          // Example: uncensored:latest    36683e6752e9    4.7 GB    21 hours ago
+          const match = line.match(/^(\S+)\s+(\S+)\s+(\d+(?:\.\d+)?)\s+(GB|MB|KB)\s+(.+)$/);
+          if (match) {
+            const name = match[1];
+            const size = `${match[3]} ${match[4]}`;
+            const modified = match[5].trim();
             
             // Get more details via ollama show
             const details = await this.getModelDetails(name);
