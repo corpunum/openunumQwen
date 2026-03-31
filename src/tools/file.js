@@ -6,12 +6,16 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
 
+// Workspace is /home/corp-unum/openunumQwen
 const WORKSPACE_ROOT = resolve(process.cwd());
 
 function safePath(userPath) {
+  if (!userPath) {
+    throw new Error('Path is required');
+  }
   const resolved = resolve(userPath);
   if (!resolved.startsWith(WORKSPACE_ROOT)) {
-    throw new Error(`Path outside workspace: ${userPath} (resolved: ${resolved})`);
+    throw new Error(`Path outside workspace: ${userPath} (resolved: ${resolved}, workspace: ${WORKSPACE_ROOT})`);
   }
   return resolved;
 }
