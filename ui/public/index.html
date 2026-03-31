@@ -75,7 +75,8 @@
       max-width: 900px; 
       margin: 0 auto; 
       width: 100%;
-      height: calc(100vh - 70px); /* Full viewport height minus header */
+      height: 100%; /* Fill parent flex container */
+      min-height: 0; /* Critical for flex child scrolling */
     }
     .messages { 
       flex: 1; 
@@ -90,6 +91,9 @@
     .messages::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; border: 2px solid var(--bg2); }
     .messages::-webkit-scrollbar-thumb:hover { background: var(--accent); }
     .messages::-webkit-scrollbar-corner { background: var(--bg2); }
+    
+    /* Ensure messages scroll to bottom on new content */
+    .messages.auto-scroll { scroll-behavior: smooth; }
     .message {
       margin-bottom: 16px;
       padding: 14px 18px;
