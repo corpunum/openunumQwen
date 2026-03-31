@@ -2,11 +2,13 @@
  * Autonomous Agent Core
  * Planning, execution, tool calling with self-healing
  * Fixes: Proper ESM, no require(), real completion detection, no context bloat
+ * Added: ContextManager for automatic chat compaction to prevent context overflow
  */
 
 import { loadConfig, getConfig } from './config.js';
 import { CircuitBreaker } from '../health/circuit-breaker.js';
 import { MemoryManager } from '../memory/memory.js';
+import { ContextManager } from './context-manager.js';
 
 const MAX_ITERATIONS = 50;
 const MAX_TOOL_FAILURES = 3;
@@ -18,6 +20,7 @@ export class Agent {
     this.config = loadConfig();
     this.memory = new MemoryManager();
     this.circuitBreaker = new CircuitBreaker();
+    this.contextManager = new ContextManager();
     this.sessionHistory = [];
     this.toolFailures = new Map();
     this.toolCounts = new Map();
@@ -33,6 +36,27 @@ export class Agent {
     await this.memory.initialize();
     await this.runHealthCheck();
     console.log('[Agent] Initialized with', this.currentProvider, '/', this.currentModel);
+  }
+
+  /**
+   * Check and compact session history if context usage is too high
+   * Called before each run to ensure we have room to work
+   */
+  async ensureContextCapacity() {
+    const status = this.contextManager.shouldCompact(this.sessionHistory);
+    
+    if (status.needsCompaction) {
+      console.log(`[Agent] Context at ${Math.round(status.usagePercent * 100)}% - triggering compaction`);
+      const result = await this.contextManager.compact(this.sessionHistory, this.memory);
+      
+      if (result.compactedMessages) {
+        this.sessionHistory = result.compactedMessages;
+        console.log(`[Agent] Compaction complete: ${result.summary?.messageCount || 0} messages summarized`);
+        return { compacted: true, summary: result.summary };
+      }
+    }
+    
+    return { compacted: false };
   }
 
   async runHealthCheck() {
