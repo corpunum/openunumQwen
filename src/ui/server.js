@@ -116,7 +116,29 @@ async function handleApiRequest(url, req, agent, config) {
 
   if (pathname === '/api/chat' && method === 'POST') {
     const body = await readRequestBody(req);
-    const result = await agent.run(body.task);
+    // Support both 'task' and 'message' fields for compatibility
+    const task = body.task || body.message;
+    
+    // Handle /new command server-side
+    if (task === '/new' || task === '/reset' || task === '/clear') {
+      return {
+        answer: 'Chat cleared! Start fresh with a new task.',
+        completed: true,
+        proof: 'Reset command executed',
+        results: []
+      };
+    }
+    
+    if (!task) {
+      return {
+        answer: 'Please provide a task or message to execute.',
+        completed: false,
+        proof: 'No task provided',
+        results: []
+      };
+    }
+    
+    const result = await agent.run(task);
     return result;
   }
 
