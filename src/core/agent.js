@@ -367,6 +367,15 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
   async run(task, options = {}) {
     await this.initialize();
     
+    // Check context usage and compact if needed BEFORE processing
+    const compactionResult = await this.ensureContextCapacity();
+    if (compactionResult.compacted) {
+      console.log('[Agent] Context was compacted, summary saved to memory');
+    }
+    
+    // Add user message to history
+    this.sessionHistory.push({ role: 'user', content: task });
+    
     const plan = await this.plan(task, this.sessionHistory);
     console.log('[Agent] Plan:', JSON.stringify(plan, null, 2));
 
