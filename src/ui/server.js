@@ -235,6 +235,40 @@ async function handleApiRequest(url, req, agent, config) {
     return agent.clearHistory();
   }
 
+  // Session management endpoints
+  if (pathname === '/api/sessions' && method === 'GET') {
+    const limit = parseInt(url.searchParams.get('limit') || '50');
+    return agent.listSessions(limit);
+  }
+
+  if (pathname === '/api/sessions' && method === 'POST') {
+    return agent.createSession();
+  }
+
+  if (pathname === '/api/sessions/:id' && method === 'GET') {
+    const id = pathname.split('/')[3];
+    return agent.loadSession(id);
+  }
+
+  if (pathname === '/api/sessions/:id' && method === 'DELETE') {
+    const id = pathname.split('/')[3];
+    return agent.deleteSession(id);
+  }
+
+  if (pathname === '/api/sessions/:id/load' && method === 'POST') {
+    const id = pathname.split('/')[3];
+    const session = agent.loadSession(id);
+    return { session, messages: agent.sessionHistory };
+  }
+
+  if (pathname === '/api/sessions/current' && method === 'GET') {
+    return agent.getCurrentSession();
+  }
+
+  if (pathname === '/api/sessions/count' && method === 'GET') {
+    return { count: agent.getSessionCount() };
+  }
+
   throw new Error('Unknown API route');
 }
 
