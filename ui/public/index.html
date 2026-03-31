@@ -395,6 +395,31 @@
       healthText.textContent = status.charAt(0).toUpperCase() + status.slice(1);
     }
 
+    // Update context usage display
+    async function updateContextStats() {
+      try {
+        const res = await fetch('/api/context-stats');
+        const stats = await res.json();
+        const percentEl = document.getElementById('context-percent');
+        const containerEl = document.getElementById('context-usage');
+        
+        if (percentEl && stats.usagePercent !== undefined) {
+          percentEl.textContent = Math.round(stats.usagePercent * 100);
+          
+          // Color code based on usage
+          if (stats.usagePercent < 0.5) {
+            containerEl.style.color = 'var(--good)';
+          } else if (stats.usagePercent < 0.7) {
+            containerEl.style.color = 'var(--warn)';
+          } else {
+            containerEl.style.color = 'var(--bad)';
+          }
+        }
+      } catch (e) {
+        console.error('[Context] Failed to fetch stats:', e);
+      }
+    }
+
     function renderHealthStats(health) {
       const statsEl = document.getElementById('health-stats');
       if (!health || !health.checks) {
