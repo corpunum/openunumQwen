@@ -245,28 +245,27 @@ async function handleApiRequest(url, req, agent, config) {
     return agent.createSession();
   }
 
-  if (pathname === '/api/sessions/:id' && method === 'GET') {
-    const id = pathname.split('/')[3];
+  if (pathname.startsWith('/api/sessions/') && method === 'GET') {
+    const parts = pathname.split('/');
+    const id = parts[3];
+    if (id === 'current') {
+      return agent.getCurrentSession();
+    }
+    if (id === 'count') {
+      return { count: agent.getSessionCount() };
+    }
     return agent.loadSession(id);
   }
 
-  if (pathname === '/api/sessions/:id' && method === 'DELETE') {
+  if (pathname.startsWith('/api/sessions/') && method === 'DELETE') {
     const id = pathname.split('/')[3];
     return agent.deleteSession(id);
   }
 
-  if (pathname === '/api/sessions/:id/load' && method === 'POST') {
+  if (pathname.startsWith('/api/sessions/') && pathname.endsWith('/load') && method === 'POST') {
     const id = pathname.split('/')[3];
     const session = agent.loadSession(id);
     return { session, messages: agent.sessionHistory };
-  }
-
-  if (pathname === '/api/sessions/current' && method === 'GET') {
-    return agent.getCurrentSession();
-  }
-
-  if (pathname === '/api/sessions/count' && method === 'GET') {
-    return { count: agent.getSessionCount() };
   }
 
   throw new Error('Unknown API route');
