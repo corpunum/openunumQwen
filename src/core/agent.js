@@ -479,45 +479,113 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
   }
 
   async generateFinalResponse(task, results) {
-    // If we have successful results, create a clear summary
     const successfulSteps = results.filter(r => r.status === 'success');
     const failedSteps = results.filter(r => r.status === 'failed');
     
-    if (failedSteps.length === 0 && successfulSteps.length > 0) {
-      // Extract the actual answer from the last successful result
+    // Priority 1: Extract clean answer from last successful result
+    if (successfulSteps.length > 0) {
       const lastResult = successfulSteps[successfulSteps.length - 1];
-      if (lastResult.result) {
-        if (typeof lastResult.result === 'string') {
-          return lastResult.result;
+      const answer = this.extractCleanAnswer(lastResult);
+      if (answer) {
+        return answer;
+      }
+    }
+    
+    // Priority 2: Format structured tool results (models_list, etc.)
+    for (const step of successfulSteps.slice().reverse()) {
+      if (step.result) {
+        if (step.result.local || step.result.summary) {
+          return this.formatModelList(step.result);
         }
-        if (lastResult.result.content) {
-          return lastResult.result.content;
+        if (step.result.checks) {
+          return this.formatHealthCheck(step.result);
         }
-        if (lastResult.result.stdout) {
-          return lastResult.result.stdout;
-        }
-        // For model/list tools, format nicely
-        if (lastResult.result.local || lastResult.result.summary) {
-          return this.formatModelList(lastResult.result);
+        if (step.result.branch !== undefined) {
+          return this.formatGitStatus(step.result);
         }
       }
     }
     
-    // Generate a summary via model if needed
+    // Priority 3: Generate summary via model
     try {
       const summary = await this.callModel(
         this.buildSystemPrompt(task, this.sessionHistory),
         `Task: ${task}
         Results: ${JSON.stringify(results.slice(-5))}
         
-        Provide a clear, concise answer to the user's original question.
-        If the task completed, summarize what was done.
-        If it failed, explain what went wrong and suggest next steps.`
+        Provide a CRYSTAL CLEAR, direct answer to the user's question.
+        - Put the answer FIRST, before any explanation
+        - Use formatting (bold, tables, lists) for clarity
+        - If task failed, say so clearly and explain why
+        - Do NOT include tool call markup or internal details
+        - Be concise but complete`
       );
       return summary;
     } catch (e) {
-      return `Task completed with ${successfulSteps.length} successful steps. ${failedSteps.length > 0 ? failedSteps.length + ' steps failed.' : ''}`;
+      // Fallback: simple summary
+      const status = failedSteps.length === 0 ? '✅ Completed' : `⚠️ Partial (${successfulSteps.length}/${results.length} steps)`;
+      return `${status}\n\nTask: ${task}\n\n${successfulSteps.length} steps executed successfully.${failedSteps.length > 0 ? ` ${failedSteps.length} steps failed.` : ''}`;
     }
+  }
+
+  /**
+   * Extract a clean answer from a result object
+   */
+  extractCleanAnswer(result) {
+    if (!result) return null;
+    
+    // String results
+    if (typeof result === 'string' && result.trim().length > 10) {
+      // Remove tool markup if present
+      let clean = result.replace(/<tool_code>[\s\S]*?<\/tool_code>/g, '').trim();
+      if (clean.length > 10) {
+        return clean;
+      }
+    }
+    
+    // Object with content/stdout/output
+    if (result.content && typeof result.content === 'string') {
+      return result.content;
+    }
+    if (result.stdout && typeof result.stdout === 'string') {
+      return result.stdout;
+    }
+    if (result.output && typeof result.output === 'string') {
+      return result.output;
+    }
+    if (result.text && typeof result.text === 'string') {
+      return result.text;
+    }
+    
+    return null;
+  }
+
+  /**
+   * Format health check results
+   */
+  formatHealthCheck(result) {
+    let output = `## System Health Status\n\n`;
+    const checks = result.checks || {};
+    
+    for (const [key, check] of Object.entries(checks)) {
+      const icon = check.status === 'healthy' ? '✅' : check.status === 'degraded' ? '⚠️' : '❌';
+      output += `- **${key}**: ${icon} ${check.status}`;
+      if (check.details) output += ` (${check.details})`;
+      output += `\n`;
+    }
+    
+    output += `\n**Overall:** ${result.overall || 'unknown'}`;
+    return output;
+  }
+
+  /**
+   * Format git status results
+   */
+  formatGitStatus(result) {
+    return `## Git Status\n\n` +
+      `**Branch:** ${result.branch}\n` +
+      `**Ahead:** ${result.ahead || 0} | **Behind:** ${result.behind || 0}\n` +
+      `**Modified:** ${result.modified || 0} | **Staged:** ${result.staged || 0} | **Untracked:** ${result.untracked || 0}`;
   }
 
   formatModelList(result) {
