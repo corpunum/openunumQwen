@@ -751,8 +751,20 @@
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         item.classList.add('active');
         const panelId = item.dataset.panel + '-panel';
-        document.getElementById(panelId).classList.add('active');
+        const panelEl = document.getElementById(panelId);
+        panelEl.classList.add('active');
         document.getElementById('panel-title').textContent = item.textContent.split(' ')[1] || item.textContent;
+        
+        // Special handling for chat panel - ensure scroll is working
+        if (item.dataset.panel === 'chat') {
+          const messagesEl = document.getElementById('messages');
+          if (messagesEl) {
+            // Force reflow and scroll setup
+            messagesEl.style.overflowY = 'scroll';
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            console.log('[Chat Panel] Activated, scrollHeight:', messagesEl.scrollHeight, 'clientHeight:', messagesEl.clientHeight);
+          }
+        }
         
         if (item.dataset.panel === 'health') {
           ws.send(JSON.stringify({ type: 'health' }));
