@@ -10,7 +10,8 @@
     "test": "node tests/run.js",
     "sync": "node scripts/git-sync.js",
     "health": "node scripts/health-check.js",
-    "init": "node scripts/init.js"
+    "init": "node scripts/init.js",
+    "research": "node scripts/research-agent.js"
   },
   "keywords": ["autonomous", "agent", "ai", "self-healing"],
   "author": "Antonis",
