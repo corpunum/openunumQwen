@@ -305,6 +305,7 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
     const { HealthTool } = await import('../tools/health.js');
     const { SkillTool } = await import('../tools/skills.js');
     const { EmailTool } = await import('../tools/email.js');
+    const { ModelsTool } = await import('../tools/models.js');
 
     const tools = {
       browser_navigate: BrowserTool.navigate,
@@ -328,7 +329,8 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
       email_send_html: EmailTool.sendHtml,
       email_list: EmailTool.list,
       email_read: EmailTool.read,
-      email_check_status: EmailTool.checkStatus
+      email_check_status: EmailTool.checkStatus,
+      models_list: ModelsTool.list
     };
 
     if (!tools[toolName]) {
