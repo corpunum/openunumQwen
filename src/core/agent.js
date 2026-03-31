@@ -9,6 +9,7 @@ import { loadConfig, getConfig } from './config.js';
 import { CircuitBreaker } from '../health/circuit-breaker.js';
 import { MemoryManager } from '../memory/memory.js';
 import { ContextManager } from './context-manager.js';
+import { SessionManager } from './session-manager.js';
 
 const MAX_ITERATIONS = 50;
 const MAX_TOOL_FAILURES = 3;
