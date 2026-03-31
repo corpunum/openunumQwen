@@ -347,42 +347,84 @@
     function formatResult(result) {
       let html = '';
       
-      // Show the direct answer first if available
+      // Completion badge at top
+      if (result.completed) {
+        html += `<div style="color:var(--good);margin-bottom:8px;font-weight:600;">✅ Task Completed</div>`;
+      } else {
+        html += `<div style="color:var(--warn);margin-bottom:8px;font-weight:600;">⚠️ Incomplete</div>`;
+      }
+      
+      // CRYSTAL CLEAR ANSWER - biggest, most prominent
       if (result.answer) {
-        html += `<div class="answer-box" style="background:rgba(0,255,136,0.1);border-left:3px solid var(--good);padding:12px;margin-bottom:12px;border-radius:4px;">
-          <div style="font-size:0.85em;color:var(--good);margin-bottom:6px;">✅ Answer:</div>
-          <div style="white-space:pre-wrap;line-height:1.5;">${escapeHtml(result.answer)}</div>
+        html += `<div class="answer-box" style="background:linear-gradient(135deg, rgba(0,255,136,0.08), rgba(52,211,153,0.05));border:2px solid var(--good);padding:18px;margin-bottom:16px;border-radius:10px;">
+          <div style="font-size:0.75em;color:var(--good);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;">✅ Your Answer:</div>
+          <div style="white-space:pre-wrap;line-height:1.6;font-size:0.95em;color:var(--text);">${formatMarkdown(result.answer)}</div>
         </div>`;
       }
       
-      html += `<div style="margin-bottom:8px;"><strong>Task:</strong> ${escapeHtml(result.task)}</div>`;
+      // Task summary (compact)
+      html += `<div style="font-size:0.85em;color:var(--muted);margin-bottom:12px;"><strong>Task:</strong> ${escapeHtml(result.task)}</div>`;
       
-      if (result.completed) {
-        html += `<div style="color:var(--good);margin-bottom:8px;">✅ Completed</div>`;
-      } else {
-        html += `<div style="color:var(--warn);margin-bottom:8px;">⚠️ Incomplete</div>`;
-      }
-      
+      // Proof if available
       if (result.proof) {
-        html += `<div style="font-size:0.85em;color:var(--muted);margin-bottom:12px;">Proof: ${escapeHtml(result.proof)}</div>`;
+        html += `<div style="font-size:0.8em;color:var(--muted);margin-bottom:12px;padding:8px;background:rgba(34,211,238,0.05);border-radius:6px;">📋 Proof: ${escapeHtml(result.proof)}</div>`;
       }
       
+      // Context usage
+      if (result.contextUsage) {
+        const pct = Math.round(result.contextUsage.percent * 100);
+        const color = pct < 50 ? 'var(--good)' : pct < 70 ? 'var(--warn)' : 'var(--bad)';
+        html += `<div style="font-size:0.75em;color:${color};margin-bottom:12px;">📊 Context: ${pct}% used (${result.contextUsage.tokens.toLocaleString()} / ${result.contextUsage.window.toLocaleString()} tokens)</div>`;
+      }
+      
+      // Expandable step details
       if (result.results?.length) {
-        html += `<details style="margin-top:12px;"><summary style="cursor:pointer;color:var(--muted);font-size:0.9em;">Show ${result.results.length} steps (click to expand)</summary>`;
+        const successCount = result.results.filter(r => r.status === 'success').length;
+        html += `<details style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px;">
+          <summary style="cursor:pointer;color:var(--muted);font-size:0.85em;font-weight:500;">
+            🔧 Execution Details: ${successCount}/${result.results.length} steps succeeded
+            ${result.iterations ? `• ${result.iterations} iterations` : ''}
+          </summary>
+          <div style="margin-top:12px;">`;
         result.results.forEach((r, i) => {
           const content = r.result || r.error || r.response;
           const contentStr = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-          html += `<div class="tool-call" onclick="this.classList.toggle('expanded')" style="margin-top:8px;">
-            <div class="tool-header">Step ${r.step}: ${r.tool || r.action} <span>${r.status === 'success' ? '✅' : '❌'}</span></div>
+          html += `<div class="tool-call" onclick="this.classList.toggle('expanded')" style="margin-bottom:8px;">
+            <div class="tool-header">
+              <span>Step ${r.step}: ${r.tool || r.action}</span>
+              <span>${r.status === 'success' ? '✅' : '❌'}</span>
+            </div>
             <div class="tool-content">${escapeHtml(contentStr)}</div>
           </div>`;
         });
-        html += `</details>`;
+        html += `</div></details>`;
       }
       
-      if (result.iterations) {
-        html += `<div style="font-size:0.85em;color:var(--muted);margin-top:8px;">Iterations: ${result.iterations}</div>`;
-      }
+      return html;
+    }
+
+    /**
+     * Simple markdown-like formatting for answers
+     */
+    function formatMarkdown(text) {
+      if (!text) return '';
+      
+      // Escape HTML first
+      let html = escapeHtml(text);
+      
+      // Bold **text**
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      
+      // Headers ## text
+      html = html.replace(/^## (.+)$/gm, '<h3 style="color:var(--accent);margin:12px 0 6px 0;font-size:1.1em;">$1</h3>');
+      html = html.replace(/^### (.+)$/gm, '<h4 style="color:var(--accent2);margin:10px 0 4px 0;font-size:1em;">$1</h4>');
+      
+      // Tables (basic)
+      html = html.replace(/\|(.+)\|/g, '<table style="margin:8px 0;"><tr>$1</tr></table>');
+      html = html.replace(/<tr>([^<]+)<\/tr><tr>([-| ]+)<\/tr>/g, '<table style="margin:8px 0;"><thead><tr>$1</tr></thead><tbody>');
+      
+      // Lists - text
+      html = html.replace(/^[-*] (.+)$/gm, '<li style="margin:4px 0;">$1</li>');
       
       return html;
     }
