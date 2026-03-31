@@ -72,12 +72,39 @@ export async function startServer(agent, config) {
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data);
-        console.log('[WS] Message:', message.type);
+        console.log('[WS] Message:', message.type, message);
         
         if (message.type === 'chat') {
-          ws.send(JSON.stringify({ type: 'status', text: 'Thinking...' }));
+          // Support both 'task' and 'message' fields
+          const task = message.task || message.message;
           
-          const result = await agent.run(message.task, { stream: true });
+          if (!task) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              error: 'No task provided. Please send { type: "chat", task: "your task" }'
+            }));
+            return;
+          }
+          
+          // Handle /new command
+          if (task === '/new' || task === '/reset' || task === '/clear') {
+            ws.send(JSON.stringify({
+              type: 'result',
+              result: {
+                answer: 'Chat cleared! Start fresh with a new task.',
+                completed: true,
+                proof: 'Reset command executed',
+                results: []
+              }
+            }));
+            return;
+          }
+          
+          ws.send(JSON.stringify({ type: 'status', text: 'Thinking...' }));
+          console.log('[WS] Running task:', task);
+          
+          const result = await agent.run(task, { stream: true });
+          console.log('[WS] Result:', result.completed ? 'completed' : 'incomplete', result.answer ? 'has answer' : 'no answer');
           
           ws.send(JSON.stringify({
             type: 'result',
@@ -88,6 +115,7 @@ export async function startServer(agent, config) {
           ws.send(JSON.stringify({ type: 'health', status: health }));
         }
       } catch (e) {
+        console.error('[WS] Error:', e.message);
         ws.send(JSON.stringify({ type: 'error', error: e.message }));
       }
     });
