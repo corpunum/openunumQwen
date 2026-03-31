@@ -210,10 +210,20 @@
     .tool-call.expanded .tool-content { display: block; }
     
     /* Panels */
-    .panel { display: none; padding: 30px; }
-    .panel.active { display: flex; flex-direction: column; }
-    .panel#chat-panel { padding: 0; }
-    .panel#chat-panel .messages { flex: 1; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    
+    /* Chat Panel - Special Flex Layout */
+    #chat-panel {
+      display: none !important;
+      height: calc(100vh - 80px);
+      padding: 20px 30px;
+      overflow: hidden;
+    }
+    #chat-panel.active {
+      display: flex !important;
+      flex-direction: column;
+    }
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
