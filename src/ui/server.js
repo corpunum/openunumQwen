@@ -147,6 +147,34 @@ async function handleApiRequest(url, req, agent, config) {
     return await MemoryTool.search({ query: query || '', topK: 10 });
   }
 
+  if (pathname === '/api/git-status' && method === 'GET') {
+    const { GitTool } = await import('../tools/git.js');
+    const status = await GitTool.status();
+    const log = await GitTool.log({ limit: 5 });
+    return {
+      branch: status.branch,
+      ahead: status.ahead || 0,
+      behind: status.behind || 0,
+      modified: status.modified?.length || 0,
+      staged: status.staged?.length || 0,
+      untracked: status.untracked?.length || 0,
+      recentCommits: log?.commits || []
+    };
+  }
+
+  if (pathname === '/api/git-sync' && method === 'POST') {
+    const { GitTool } = await import('../tools/git.js');
+    const status = await GitTool.status();
+    let message = 'No changes';
+    if (status.modified?.length || status.untracked?.length || status.staged?.length) {
+      await GitTool.add();
+      await GitTool.commit('auto: UI sync');
+      message = 'Committed';
+    }
+    const pushResult = await GitTool.push();
+    return { success: true, message: `${message}, ${pushResult.output || 'pushed'}` };
+  }
+
   throw new Error('Unknown API route');
 }
 
