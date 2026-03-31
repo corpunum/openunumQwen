@@ -433,8 +433,9 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
     // Generate final response for the user
     const finalResponse = await this.generateFinalResponse(task, results);
     
-    // Add agent response to history
+    // Add agent response to history and persist to session
     this.sessionHistory.push({ role: 'assistant', content: finalResponse });
+    this.sessionManager.addMessage('assistant', finalResponse);
     
     // Verify completion
     const completionCheck = await this.verifyCompletion(task, results);
