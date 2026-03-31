@@ -318,6 +318,10 @@
 
     function renderHealthStats(health) {
       const statsEl = document.getElementById('health-stats');
+      if (!health || !health.checks) {
+        statsEl.innerHTML = '<div class="stat"><div class="stat-value" style="color:var(--warn)">Unknown</div><div class="stat-label">No health data</div></div>';
+        return;
+      }
       statsEl.innerHTML = Object.entries(health.checks).map(([key, check]) => `
         <div class="stat">
           <div class="stat-value" style="color:${check.status === 'healthy' ? 'var(--good)' : check.status === 'degraded' ? 'var(--warn)' : 'var(--bad)'}">${check.status}</div>
@@ -343,9 +347,153 @@
       if (e.key === 'Enter') sendMessage();
     });
 
+    // Config Panel
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const config = await res.json();
+        const formEl = document.getElementById('config-form');
+        formEl.innerHTML = `
+          <form id="config-save-form" style="display:grid;gap:12px;max-width:500px;">
+            <div>
+              <label style="display:block;margin-bottom:4px;color:var(--muted);">Provider</label>
+              <input type="text" name="provider" value="${config.provider || ''}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:4px;color:var(--muted);">Model</label>
+              <input type="text" name="model" value="${config.model || ''}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:4px;color:var(--muted);">Base URL</label>
+              <input type="text" name="baseUrl" value="${config.baseUrl || ''}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:4px;color:var(--muted);">UI Port</label>
+              <input type="number" name="uiPort" value="${config.uiPort || 18881}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:4px;color:var(--muted);">Autonomy Mode</label>
+              <select name="autonomyMode" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);">
+                <option value="relentless" ${config.autonomyMode === 'relentless' ? 'selected' : ''}>Relentless (Full Control)</option>
+                <option value="balanced" ${config.autonomyMode === 'balanced' ? 'selected' : ''}>Balanced</option>
+                <option value="conservative" ${config.autonomyMode === 'conservative' ? 'selected' : ''}>Conservative</option>
+              </select>
+            </div>
+            <button type="submit" style="margin-top:12px;">Save Configuration</button>
+          </form>
+        `;
+        document.getElementById('config-save-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const updated = {
+            provider: formData.get('provider'),
+            model: formData.get('model'),
+            baseUrl: formData.get('baseUrl'),
+            uiPort: parseInt(formData.get('uiPort')),
+            autonomyMode: formData.get('autonomyMode')
+          };
+          try {
+            const res = await fetch('/api/config', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updated)
+            });
+            const result = await res.json();
+            if (result.success) {
+              addMessage('system', '✅ Configuration saved! Restart required for some changes.');
+            } else {
+              addMessage('system', '❌ Error: ' + (result.error || 'Unknown'));
+            }
+          } catch (err) {
+            addMessage('system', '❌ Error saving: ' + err.message);
+          }
+        });
+      } catch (err) {
+        document.getElementById('config-form').innerHTML = `<div style="color:var(--bad);">Error loading config: ${err.message}</div>`;
+      }
+    }
+
+    // Memory Panel
+    async function searchMemory(query) {
+      try {
+        const res = await fetch(`/api/memory?q=${encodeURIComponent(query)}`);
+        const results = await res.json();
+        const resultsEl = document.getElementById('memory-results');
+        if (!results || results.length === 0) {
+          resultsEl.innerHTML = '<div style="color:var(--muted);">No memories found.</div>';
+          return;
+        }
+        resultsEl.innerHTML = results.map(m => `
+          <div class="card" style="margin-bottom:12px;">
+            <div style="font-size:0.85em;color:var(--muted);margin-bottom:4px;">${new Date(m.timestamp).toLocaleString()}</div>
+            <div style="color:var(--text);">${m.text}</div>
+            ${m.tags ? `<div style="font-size:0.75em;color:var(--accent);margin-top:8px;">Tags: ${m.tags.join(', ')}</div>` : ''}
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('memory-results').innerHTML = `<div style="color:var(--bad);">Error: ${err.message}</div>`;
+      }
+    }
+
+    document.getElementById('memory-search')?.addEventListener('input', (e) => {
+      searchMemory(e.target.value);
+    });
+
+    // Sync Panel
+    async function loadSyncStatus() {
+      try {
+        const res = await fetch('/api/git-status');
+        const status = await res.json();
+        const statusEl = document.getElementById('sync-status');
+        statusEl.innerHTML = `
+          <div class="stat-grid" style="margin-bottom:16px;">
+            <div class="stat">
+              <div class="stat-value" style="color:var(--good);">${status.branch || 'N/A'}</div>
+              <div class="stat-label">Branch</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color:${status.ahead > 0 ? 'var(--warn)' : 'var(--good)'}">${status.ahead || 0}</div>
+              <div class="stat-label">Ahead of Origin</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" style="color:${status.modified > 0 ? 'var(--warn)' : 'var(--good)'}">${status.modified || 0}</div>
+              <div class="stat-label">Modified Files</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Recent Commits</h3>
+            <div style="font-family:monospace;font-size:0.85em;max-height:200px;overflow-y:auto;">
+              ${(status.recentCommits || []).map(c => `<div style="padding:4px 0;border-bottom:1px solid var(--line);">${c.hash?.substring(0,7)} - ${c.message}</div>`).join('') || '<div style="color:var(--muted);">No commits</div>'}
+            </div>
+          </div>
+          <button id="sync-now-btn" style="margin-top:12px;" onclick="syncNow()">Sync Now</button>
+          <div id="sync-message" style="margin-top:12px;"></div>
+        `;
+      } catch (err) {
+        document.getElementById('sync-status').innerHTML = `<div style="color:var(--bad);">Error loading sync status: ${err.message}</div>`;
+      }
+    }
+
+    async function syncNow() {
+      const msgEl = document.getElementById('sync-message');
+      msgEl.innerHTML = '<span style="color:var(--warn);">Syncing...</span>';
+      try {
+        const res = await fetch('/api/git-sync', { method: 'POST' });
+        const result = await res.json();
+        if (result.success) {
+          msgEl.innerHTML = `<span style="color:var(--good);">✅ Synced: ${result.message || 'No changes'}</span>`;
+          setTimeout(loadSyncStatus, 1000);
+        } else {
+          msgEl.innerHTML = `<span style="color:var(--bad);">❌ Error: ${result.error || 'Unknown'}</span>`;
+        }
+      } catch (err) {
+        msgEl.innerHTML = `<span style="color:var(--bad);">❌ Error: ${err.message}</span>`;
+      }
+    }
+
     // Panel navigation
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', async () => {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         item.classList.add('active');
@@ -355,6 +503,10 @@
         
         if (item.dataset.panel === 'health') {
           ws.send(JSON.stringify({ type: 'health' }));
+        } else if (item.dataset.panel === 'config') {
+          loadConfig();
+        } else if (item.dataset.panel === 'sync') {
+          loadSyncStatus();
         }
       });
     });
