@@ -484,7 +484,50 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
     const count = this.sessionHistory.length;
     this.sessionHistory = [];
     console.log(`[Agent] Cleared ${count} messages from session history`);
+    
+    // Also clear persisted session
+    this.sessionManager.clearCurrentSession();
+    
     return { cleared: true, previousCount: count };
+  }
+
+  /**
+   * Session management methods
+   */
+  
+  // Create a new session
+  createSession() {
+    this.sessionHistory = [];
+    const session = this.sessionManager.createSession();
+    return session;
+  }
+
+  // Load a session by ID
+  loadSession(id) {
+    const session = this.sessionManager.loadSession(id);
+    this.sessionHistory = session.messages || [];
+    this.sessionManager.currentSessionId = id;
+    return session;
+  }
+
+  // List all sessions
+  listSessions(limit = 50) {
+    return this.sessionManager.listSessions(limit);
+  }
+
+  // Delete a session
+  deleteSession(id) {
+    return this.sessionManager.deleteSession(id);
+  }
+
+  // Get current session
+  getCurrentSession() {
+    return this.sessionManager.getCurrentSession();
+  }
+
+  // Get session count
+  getSessionCount() {
+    return this.sessionManager.getSessionCount();
   }
 
   async generateFinalResponse(task, results) {
