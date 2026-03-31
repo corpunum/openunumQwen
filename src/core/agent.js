@@ -389,6 +389,9 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
       }
     }
 
+    // Generate final response for the user
+    const finalResponse = await this.generateFinalResponse(task, results);
+    
     // Verify completion
     const completionCheck = await this.verifyCompletion(task, results);
     
@@ -398,8 +401,66 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
       results,
       completed: completionCheck.completed,
       proof: completionCheck.proof,
-      iterations: this.iterationCount
+      iterations: this.iterationCount,
+      answer: finalResponse
     };
+  }
+
+  async generateFinalResponse(task, results) {
+    // If we have successful results, create a clear summary
+    const successfulSteps = results.filter(r => r.status === 'success');
+    const failedSteps = results.filter(r => r.status === 'failed');
+    
+    if (failedSteps.length === 0 && successfulSteps.length > 0) {
+      // Extract the actual answer from the last successful result
+      const lastResult = successfulSteps[successfulSteps.length - 1];
+      if (lastResult.result) {
+        if (typeof lastResult.result === 'string') {
+          return lastResult.result;
+        }
+        if (lastResult.result.content) {
+          return lastResult.result.content;
+        }
+        if (lastResult.result.stdout) {
+          return lastResult.result.stdout;
+        }
+        // For model/list tools, format nicely
+        if (lastResult.result.local || lastResult.result.summary) {
+          return this.formatModelList(lastResult.result);
+        }
+      }
+    }
+    
+    // Generate a summary via model if needed
+    try {
+      const summary = await this.callModel(
+        this.buildSystemPrompt(task, this.sessionHistory),
+        `Task: ${task}
+        Results: ${JSON.stringify(results.slice(-5))}
+        
+        Provide a clear, concise answer to the user's original question.
+        If the task completed, summarize what was done.
+        If it failed, explain what went wrong and suggest next steps.`
+      );
+      return summary;
+    } catch (e) {
+      return `Task completed with ${successfulSteps.length} successful steps. ${failedSteps.length > 0 ? failedSteps.length + ' steps failed.' : ''}`;
+    }
+  }
+
+  formatModelList(result) {
+    let output = `## Available Models\n\n`;
+    output += `| Model | Size | Family | Parameters | Context | Best For |\n`;
+    output += `|-------|------|--------|------------|---------|----------|\n`;
+    
+    if (result.local && result.local.length > 0) {
+      result.local.forEach(m => {
+        output += `| ${m.name} | ${m.size} | ${m.family} | ${m.parameters} | ${m.context} | ${m.goodFor} |\n`;
+      });
+    }
+    
+    output += `\n**Summary:** ${result.summary?.totalLocal || 0} local + ${result.summary?.totalCloud || 0} cloud = ${result.summary?.total || 0} total`;
+    return output;
   }
 
   async attemptRecovery(task, error, results) {
