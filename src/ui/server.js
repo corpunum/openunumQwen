@@ -88,6 +88,7 @@ export async function startServer(agent, config) {
           
           // Handle /new command
           if (task === '/new' || task === '/reset' || task === '/clear') {
+            agent.clearHistory();
             ws.send(JSON.stringify({
               type: 'result',
               result: {
