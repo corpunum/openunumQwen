@@ -68,38 +68,44 @@
     .health-dot.unhealthy { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
     
     /* Chat Area - Fixed, Centered, Scrollable */
-    .chat-container { 
-      display: flex !important; 
-      flex-direction: column; 
-      padding: 20px 30px; 
-      max-width: 900px; 
-      margin: 0 auto; 
+    #chat-panel {
+      display: none !important;
+      flex-direction: column;
+      padding: 20px 30px;
+      max-width: 900px;
+      margin: 0 auto;
       width: 100%;
-      height: calc(100vh - 100px);
-      min-height: 0;
+      height: calc(100vh - 80px);
+      overflow: hidden;
     }
-    .messages { 
+    #chat-panel.active {
+      display: flex !important;
+    }
+    #chat-panel .messages { 
       flex: 1; 
-      overflow-y: scroll !important; 
+      overflow-y: auto !important; 
       overflow-x: hidden;
       margin-bottom: 16px; 
       padding: 10px;
       min-height: 0;
       -webkit-overflow-scrolling: touch;
     }
-    .messages::-webkit-scrollbar { 
-      width: 10px !important; 
+    #chat-panel .messages::-webkit-scrollbar { 
+      width: 10px; 
     }
-    .messages::-webkit-scrollbar-track { 
+    #chat-panel .messages::-webkit-scrollbar-track { 
       background: var(--bg2); 
       border-radius: 4px; 
     }
-    .messages::-webkit-scrollbar-thumb { 
+    #chat-panel .messages::-webkit-scrollbar-thumb { 
       background: var(--line); 
       border-radius: 4px; 
     }
-    .messages::-webkit-scrollbar-thumb:hover { 
+    #chat-panel .messages::-webkit-scrollbar-thumb:hover { 
       background: var(--accent); 
+    }
+    #chat-panel .composer {
+      flex-shrink: 0;
     }
     .messages::-webkit-scrollbar { width: 8px; }
     .messages::-webkit-scrollbar-track { background: var(--bg2); border-radius: 4px; }
