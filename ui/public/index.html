@@ -381,7 +381,10 @@
       div.className = `message ${role}`;
       div.innerHTML = content;
       messagesEl.appendChild(div);
+      // Scroll to bottom with smooth behavior
+      messagesEl.classList.add('auto-scroll');
       messagesEl.scrollTop = messagesEl.scrollHeight;
+      setTimeout(() => messagesEl.classList.remove('auto-scroll'), 500);
     }
 
     function formatResult(result) {
