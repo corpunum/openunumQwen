@@ -570,8 +570,13 @@
     });
 
     // Initialize
+    const historyCount = loadChatHistory();
     connectWS();
-    addMessage('system', '⚡ OpenUnum Qwen ready. What should I do?');
+    if (historyCount === 0) {
+      addMessage('system', '⚡ OpenUnum Qwen ready. What should I do? (Type /help for commands)');
+    } else {
+      addMessage('system', `⚡ Welcome back! ${historyCount} messages restored. Type /new to clear.`);
+    }
   </script>
 </body>
 </html>
