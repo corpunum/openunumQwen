@@ -54,10 +54,13 @@ export const FileTool = {
   },
 
   write(args, config) {
-    const { path, content, append = false } = args;
+    const { path, content, append = false } = args || {};
 
-    if (!path || content === undefined) {
-      throw new Error('Path and content required for file_write');
+    if (!path) {
+      throw new Error('Path required for file_write');
+    }
+    if (content === undefined || content === null) {
+      throw new Error('Content required for file_write');
     }
 
     const safe = safePath(path);
