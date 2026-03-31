@@ -249,13 +249,27 @@
     <aside class="sidebar">
       <div class="brand">⚡ OpenUnum Qwen</div>
       <div class="status">Autonomous Assistant</div>
-      <nav>
-        <div class="nav-item active" data-panel="chat">💬 Chat</div>
-        <div class="nav-item" data-panel="config">⚙️ Configuration</div>
-        <div class="nav-item" data-panel="health">🏥 Health</div>
-        <div class="nav-item" data-panel="memory">🧠 Memory</div>
-        <div class="nav-item" data-panel="sync">🔄 Auto-Sync</div>
-      </nav>
+      
+      <!-- New Chat Button -->
+      <button id="new-chat-btn" style="width:100%;margin-bottom:16px;background:linear-gradient(135deg, var(--accent), var(--accent2));color:var(--bg);border:none;padding:12px;border-radius:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span>+</span> New Chat
+      </button>
+      
+      <!-- Sessions List -->
+      <div style="margin-bottom:8px;font-size:0.75em;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Recent Chats</div>
+      <div id="sessions-list" style="overflow-y:auto;max-height:calc(100vh - 280px);">
+        <!-- Sessions will be loaded here -->
+      </div>
+      
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
+        <nav>
+          <div class="nav-item active" data-panel="chat">💬 Chat</div>
+          <div class="nav-item" data-panel="config">⚙️ Configuration</div>
+          <div class="nav-item" data-panel="health">🏥 Health</div>
+          <div class="nav-item" data-panel="memory">🧠 Memory</div>
+          <div class="nav-item" data-panel="sync">🔄 Auto-Sync</div>
+        </nav>
+      </div>
     </aside>
 
     <main class="main">
