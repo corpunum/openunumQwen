@@ -101,7 +101,8 @@ export class Agent {
       'email_send_html(to, subject, htmlBody)',
       'email_list(limit)',
       'email_read(id)',
-      'email_check_status()'
+      'email_check_status()',
+      'models_list(source, limit)'
     ].join(', ');
 
     const workspacePolicy = `You operate ONLY inside /home/corp-unum/openunumQwen unless explicitly told otherwise. Never modify files outside this directory without explicit permission.`;
