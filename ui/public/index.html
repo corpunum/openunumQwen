@@ -336,23 +336,53 @@
     }
 
     function formatResult(result) {
-      let html = `<div><strong>Task:</strong> ${result.task}</div>`;
-      if (result.completed) {
-        html += `<div style="color:var(--good);margin-top:8px;">✅ Completed</div>`;
-        html += `<div style="font-size:0.85em;color:var(--muted);">Proof: ${result.proof}</div>`;
-      } else {
-        html += `<div style="color:var(--warn);margin-top:8px;">⚠️ Incomplete</div>`;
+      let html = '';
+      
+      // Show the direct answer first if available
+      if (result.answer) {
+        html += `<div class="answer-box" style="background:rgba(0,255,136,0.1);border-left:3px solid var(--good);padding:12px;margin-bottom:12px;border-radius:4px;">
+          <div style="font-size:0.85em;color:var(--good);margin-bottom:6px;">✅ Answer:</div>
+          <div style="white-space:pre-wrap;line-height:1.5;">${escapeHtml(result.answer)}</div>
+        </div>`;
       }
+      
+      html += `<div style="margin-bottom:8px;"><strong>Task:</strong> ${escapeHtml(result.task)}</div>`;
+      
+      if (result.completed) {
+        html += `<div style="color:var(--good);margin-bottom:8px;">✅ Completed</div>`;
+      } else {
+        html += `<div style="color:var(--warn);margin-bottom:8px;">⚠️ Incomplete</div>`;
+      }
+      
+      if (result.proof) {
+        html += `<div style="font-size:0.85em;color:var(--muted);margin-bottom:12px;">Proof: ${escapeHtml(result.proof)}</div>`;
+      }
+      
       if (result.results?.length) {
-        html += `<div style="margin-top:12px;"><strong>Steps:</strong></div>`;
+        html += `<details style="margin-top:12px;"><summary style="cursor:pointer;color:var(--muted);font-size:0.9em;">Show ${result.results.length} steps (click to expand)</summary>`;
         result.results.forEach((r, i) => {
-          html += `<div class="tool-call" onclick="this.classList.toggle('expanded')">
+          const content = r.result || r.error || r.response;
+          const contentStr = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+          html += `<div class="tool-call" onclick="this.classList.toggle('expanded')" style="margin-top:8px;">
             <div class="tool-header">Step ${r.step}: ${r.tool || r.action} <span>${r.status === 'success' ? '✅' : '❌'}</span></div>
-            <div class="tool-content">${JSON.stringify(r.result || r.error || r.response, null, 2)}</div>
+            <div class="tool-content">${escapeHtml(contentStr)}</div>
           </div>`;
         });
+        html += `</details>`;
       }
+      
+      if (result.iterations) {
+        html += `<div style="font-size:0.85em;color:var(--muted);margin-top:8px;">Iterations: ${result.iterations}</div>`;
+      }
+      
       return html;
+    }
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
 
     function updateHealth(status) {
