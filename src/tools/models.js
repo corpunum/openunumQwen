@@ -42,17 +42,17 @@ export const ModelsTool = {
             const size = sizeVal === '-' ? 'Cloud' : `${sizeVal} ${sizeUnit}`;
             
             // Get more details via ollama show
-            const details = await this.getModelDetails(name);
+            const details = await ModelsTool.getModelDetails(name);
             
             results.local.push({
               name: name,
               size: size,
               modified: modified,
-              family: details.family || this.extractFamily(name),
-              parameters: details.parameters || this.extractParameters(name),
+              family: details.family || ModelsTool.extractFamily(name),
+              parameters: details.parameters || ModelsTool.extractParameters(name),
               quantization: details.quantization || 'Unknown',
-              context: this.estimateContext(details.family || name),
-              goodFor: this.getUseCase(details.family || name, details.parameters)
+              context: ModelsTool.estimateContext(details.family || name),
+              goodFor: ModelsTool.getUseCase(details.family || name, details.parameters)
             });
           }
         }
