@@ -69,27 +69,41 @@
     
     /* Chat Area - Fixed, Centered, Scrollable */
     .chat-container { 
-      display: flex; 
+      display: flex !important; 
       flex-direction: column; 
       padding: 20px 30px; 
       max-width: 900px; 
       margin: 0 auto; 
       width: 100%;
-      flex: 1;
+      height: calc(100vh - 80px); /* Account for header */
       min-height: 0;
       overflow: hidden;
     }
     .messages { 
       flex: 1; 
-      overflow-y: auto; 
+      overflow-y: scroll !important; 
       overflow-x: hidden;
       margin-bottom: 16px; 
       padding: 10px;
       min-height: 0;
       -webkit-overflow-scrolling: touch;
+      height: calc(100% - 80px); /* Leave room for composer */
     }
-    .messages.force-scroll {
-      overflow-y: scroll !important;
+    .messages::-webkit-scrollbar { 
+      width: 10px !important; 
+      display: block !important;
+    }
+    .messages::-webkit-scrollbar-track { 
+      background: var(--bg2); 
+      border-radius: 4px; 
+    }
+    .messages::-webkit-scrollbar-thumb { 
+      background: var(--line); 
+      border-radius: 4px; 
+      border: 2px solid var(--bg2); 
+    }
+    .messages::-webkit-scrollbar-thumb:hover { 
+      background: var(--accent); 
     }
     .messages::-webkit-scrollbar { width: 8px; }
     .messages::-webkit-scrollbar-track { background: var(--bg2); border-radius: 4px; }
