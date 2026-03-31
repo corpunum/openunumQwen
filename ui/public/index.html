@@ -841,9 +841,159 @@
       });
     });
 
-    // Initialize
+    // ========== SESSION MANAGEMENT ==========
+    
+    let currentSessionId = null;
+    
+    // Load sessions list
+    async function loadSessions() {
+      try {
+        const res = await fetch('/api/sessions');
+        const sessions = await res.json();
+        renderSessionsList(sessions);
+      } catch (e) {
+        console.error('[Sessions] Failed to load:', e);
+      }
+    }
+    
+    // Render sessions list in sidebar
+    function renderSessionsList(sessions) {
+      const listEl = document.getElementById('sessions-list');
+      if (!listEl) return;
+      
+      if (!sessions || sessions.length === 0) {
+        listEl.innerHTML = '<div style="font-size:0.8em;color:var(--muted);padding:10px;">No recent chats</div>';
+        return;
+      }
+      
+      listEl.innerHTML = sessions.map(session => {
+        const date = new Date(session.updatedAt);
+        const timeAgo = getTimeAgo(date);
+        const isActive = session.id === currentSessionId ? 'active' : '';
+        
+        return `
+          <div class="session-item ${isActive}" data-session-id="${session.id}" onclick="loadSession('${session.id}')">
+            <div class="session-item-title">${escapeHtml(session.title)}</div>
+            <div class="session-item-meta">
+              <span>${timeAgo} • ${session.messageCount} msgs</span>
+              <button class="session-item-delete" onclick="event.stopPropagation(); deleteSession('${session.id}')" title="Delete">×</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Format time ago
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      
+      return date.toLocaleDateString();
+    }
+    
+    // Create new session
+    async function createNewSession() {
+      try {
+        const res = await fetch('/api/sessions', { method: 'POST' });
+        const session = await res.json();
+        currentSessionId = session.id;
+        
+        // Clear chat UI
+        messagesEl.innerHTML = '';
+        addMessage('system', '✨ New chat started. What would you like to do?');
+        
+        // Reload sessions list
+        loadSessions();
+        
+        console.log('[Sessions] Created new session:', session.id);
+      } catch (e) {
+        console.error('[Sessions] Failed to create:', e);
+        addMessage('system', '❌ Error creating new chat');
+      }
+    }
+    
+    // Load existing session
+    async function loadSession(id) {
+      try {
+        const res = await fetch(`/api/sessions/${id}/load`, { method: 'POST' });
+        const data = await res.json();
+        
+        currentSessionId = id;
+        
+        // Clear and repopulate chat
+        messagesEl.innerHTML = '';
+        
+        if (data.messages && data.messages.length > 0) {
+          data.messages.forEach(msg => {
+            const role = msg.role === 'user' ? 'user' : 'ai';
+            addMessage(role, msg.content);
+          });
+          addMessage('system', `📜 Loaded "${data.session.title}" (${data.messages.length} messages)`);
+        } else {
+          addMessage('system', '📜 Empty session loaded');
+        }
+        
+        // Update active state in sidebar
+        document.querySelectorAll('.session-item').forEach(item => {
+          item.classList.toggle('active', item.dataset.sessionId === id);
+        });
+        
+        // Scroll to bottom
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        
+        console.log('[Sessions] Loaded session:', id);
+      } catch (e) {
+        console.error('[Sessions] Failed to load:', e);
+        addMessage('system', '❌ Error loading chat');
+      }
+    }
+    
+    // Delete session
+    async function deleteSession(id) {
+      if (!confirm('Delete this chat session?')) return;
+      
+      try {
+        const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        
+        if (result.deleted) {
+          // If we deleted the current session, create a new one
+          if (id === currentSessionId) {
+            currentSessionId = null;
+            messagesEl.innerHTML = '';
+            addMessage('system', '🗑️ Chat deleted. Starting fresh...');
+          }
+          
+          // Reload sessions list
+          loadSessions();
+          
+          console.log('[Sessions] Deleted:', id);
+        }
+      } catch (e) {
+        console.error('[Sessions] Failed to delete:', e);
+        addMessage('system', '❌ Error deleting chat');
+      }
+    }
+    
+    // New chat button handler
+    document.getElementById('new-chat-btn')?.addEventListener('click', createNewSession);
+    
+    // ========== INITIALIZATION ==========
+    
     const historyCount = loadChatHistory();
     connectWS();
+    
+    // Load sessions on startup
+    loadSessions();
+    
     if (historyCount === 0) {
       addMessage('system', '⚡ OpenUnum Qwen ready. What should I do? (Type /help for commands)');
     } else {
