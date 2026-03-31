@@ -118,8 +118,8 @@ export const ModelsTool = {
       return details;
     } catch (e) {
       return {
-        family: this.extractFamily(modelName),
-        parameters: this.extractParameters(modelName),
+        family: ModelsTool.extractFamily(modelName),
+        parameters: ModelsTool.extractParameters(modelName),
         quantization: 'Unknown'
       };
     }
