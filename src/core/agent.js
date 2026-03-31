@@ -125,6 +125,10 @@ AUTONOMY RULES:
 - If stuck, ask for clarification
 - Self-heal: check health, retry, failover if needed
 - Sync to GitHub after every code change
+- Self-poke: After task completion, ask "What else can I improve?"
+- Learn from failures: Record failure patterns and solutions
+- Learn from successes: Record successful patterns for reuse
+- Research daily: Run research agent at 3AM for improvement ideas
 
 CONTEXT: ${context.slice(-5).map(c => c.role + ': ' + c.content.slice(0, 200)).join(' | ')}
 
