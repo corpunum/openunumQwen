@@ -245,6 +245,47 @@
     const sendBtn = document.getElementById('send-btn');
     const healthDot = document.getElementById('health-dot');
     const healthText = document.getElementById('health-text');
+    const CHAT_STORAGE_KEY = 'openunum_chat_history';
+
+    // Load chat history from localStorage
+    function loadChatHistory() {
+      try {
+        const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (saved) {
+          const history = JSON.parse(saved);
+          history.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = `message ${msg.role}`;
+            div.innerHTML = msg.content;
+            messagesEl.appendChild(div);
+          });
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+          return history.length;
+        }
+      } catch (e) {
+        console.error('[Chat] Failed to load history:', e);
+      }
+      return 0;
+    }
+
+    // Save chat history to localStorage
+    function saveChatHistory() {
+      try {
+        const messages = Array.from(messagesEl.querySelectorAll('.message')).map(msg => ({
+          role: msg.classList.contains('user') ? 'user' : msg.classList.contains('system') ? 'system' : 'ai',
+          content: msg.innerHTML
+        }));
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+      } catch (e) {
+        console.error('[Chat] Failed to save history:', e);
+      }
+    }
+
+    // Clear chat history
+    function clearChatHistory() {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+      messagesEl.innerHTML = '';
+    }
 
     // Connect WebSocket
     function connectWS() {
@@ -271,12 +312,15 @@
     function handleMessage(data) {
       if (data.type === 'status') {
         addMessage('system', data.text);
+        saveChatHistory();
       } else if (data.type === 'result') {
         addMessage('ai', formatResult(data.result));
         sendBtn.disabled = false;
+        saveChatHistory();
       } else if (data.type === 'error') {
         addMessage('system', 'Error: ' + data.error);
         sendBtn.disabled = false;
+        saveChatHistory();
       } else if (data.type === 'health') {
         updateHealth(data.status.overall);
         renderHealthStats(data.status);
