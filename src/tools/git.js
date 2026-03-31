@@ -49,21 +49,25 @@ export const GitTool = {
   },
 
   async commit(args, config) {
-    const { message, files = '.' } = args;
+    const { message, files } = args;
 
     if (!message) {
       throw new Error('Commit message required');
     }
 
     try {
-      if (files) {
+      // Auto-stage: if files specified, add them; otherwise add all changes
+      if (files && files.length > 0) {
         await git(`add ${Array.isArray(files) ? files.join(' ') : files}`);
+      } else {
+        // Default: add all modified/deleted files (stages everything)
+        await git('add -A');
       }
       await git(`commit -m "${message.replace(/"/g, '\\"')}"`);
       const { stdout } = await git('log -1 --format="%H"');
       return { success: true, hash: stdout, message };
     } catch (e) {
-      if (e.message.includes('nothing to commit')) {
+      if (e.message.includes('nothing to commit') || e.message.includes('no changes added')) {
         return { success: true, skipped: true, reason: 'no_changes' };
       }
       return { success: false, error: e.message };
