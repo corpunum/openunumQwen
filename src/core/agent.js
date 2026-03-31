@@ -91,7 +91,17 @@ export class Agent {
       'git_push()',
       'memory_store(text)',
       'memory_search(query)',
-      'health_check()'
+      'health_check()',
+      'skill_install(source, name)',
+      'skill_list()',
+      'skill_approve(name)',
+      'skill_execute(name, args)',
+      'skill_uninstall(name)',
+      'email_send(to, subject, body)',
+      'email_send_html(to, subject, htmlBody)',
+      'email_list(limit)',
+      'email_read(id)',
+      'email_check_status()'
     ].join(', ');
 
     const workspacePolicy = `You operate ONLY inside /home/corp-unum/openunumQwen unless explicitly told otherwise. Never modify files outside this directory without explicit permission.`;
