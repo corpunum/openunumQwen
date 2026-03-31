@@ -126,13 +126,14 @@ async function handleApiRequest(url, req, agent, config) {
   }
 
   if (pathname === '/api/config' && method === 'GET') {
-    return getConfig();
+    const { loadConfig } = await import('../core/config.js');
+    return await loadConfig();
   }
 
   if (pathname === '/api/config' && method === 'PUT') {
     const body = await readRequestBody(req);
-    const updated = await import('../core/config.js').then(m => m.updateConfig(body));
-    return updated;
+    const { updateConfig } = await import('../core/config.js');
+    return await updateConfig(body);
   }
 
   if (pathname === '/api/memory' && method === 'POST') {
