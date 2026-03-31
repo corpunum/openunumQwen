@@ -135,5 +135,27 @@ test('Git status returns valid output', async () => {
   if (typeof status.branch !== 'string') throw new Error('Branch not returned');
 });
 
+// Test: Skills tool structure
+test('Skills tool has required methods', async () => {
+  const { SkillTool } = await import('../src/tools/skills.js');
+  const required = ['install', 'list', 'approve', 'execute', 'uninstall', 'reviewCode'];
+  for (const method of required) {
+    if (typeof SkillTool[method] !== 'function') {
+      throw new Error(`Missing method: ${method}`);
+    }
+  }
+});
+
+// Test: Email tool structure
+test('Email tool has required methods', async () => {
+  const { EmailTool } = await import('../src/tools/email.js');
+  const required = ['send', 'sendHtml', 'list', 'read', 'checkStatus'];
+  for (const method of required) {
+    if (typeof EmailTool[method] !== 'function') {
+      throw new Error(`Missing method: ${method}`);
+    }
+  }
+});
+
 // Run all tests
 runTests();
