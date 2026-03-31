@@ -415,17 +415,22 @@
       div.innerHTML = content;
       messagesEl.appendChild(div);
       
-      // Force scroll capability
-      messagesEl.classList.add('force-scroll');
-      
-      // Scroll to bottom
-      messagesEl.classList.add('auto-scroll');
+      // Force scroll - multiple methods to ensure it works
+      messagesEl.style.overflowY = 'scroll';
       messagesEl.scrollTop = messagesEl.scrollHeight;
       
-      // Debug: log scroll info
-      console.log('[Chat] Message added, scrollTop:', messagesEl.scrollTop, 'scrollHeight:', messagesEl.scrollHeight);
+      // Debug logging
+      console.log('[Chat] Message added');
+      console.log('[Chat] scrollTop:', messagesEl.scrollTop);
+      console.log('[Chat] scrollHeight:', messagesEl.scrollHeight);
+      console.log('[Chat] clientHeight:', messagesEl.clientHeight);
+      console.log('[Chat] scrollable:', messagesEl.scrollHeight > messagesEl.clientHeight);
       
-      setTimeout(() => messagesEl.classList.remove('auto-scroll'), 500);
+      // Also try scrolling after a brief delay
+      setTimeout(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        console.log('[Chat] Delayed scroll, scrollTop:', messagesEl.scrollTop);
+      }, 100);
     }
 
     function formatResult(result) {
