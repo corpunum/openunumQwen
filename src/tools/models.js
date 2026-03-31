@@ -86,19 +86,61 @@ export const ModelsTool = {
 
   async getModelDetails(modelName) {
     try {
-      const { stdout } = await execAsync(`ollama show ${modelName} --modelfile`, {
+      const { stdout } = await execAsync(`ollama show ${modelName}`, {
         timeout: 5000
       });
-      return { modelfile: stdout };
+      
+      // Parse ollama show output for key details
+      const details = {
+        family: this.extractFamily(modelName),
+        parameters: this.extractParameters(modelName),
+        quantization: 'Unknown'
+      };
+      
+      // Try to extract family from output
+      const familyMatch = stdout.match(/family\s+(\w+)/i);
+      if (familyMatch) details.family = familyMatch[1];
+      
+      // Try to extract parameters
+      const paramMatch = stdout.match(/parameter\s+size[:\s]+(\S+)/i);
+      if (paramMatch) details.parameters = paramMatch[1];
+      
+      // Try to extract quantization
+      const quantMatch = stdout.match(/quantization[:\s]+(\S+)/i);
+      if (quantMatch) details.quantization = quantMatch[1];
+      
+      return details;
     } catch (e) {
-      return {};
+      return {
+        family: this.extractFamily(modelName),
+        parameters: this.extractParameters(modelName),
+        quantization: 'Unknown'
+      };
     }
   },
 
-  formatSize(bytes) {
-    if (!bytes) return 'Unknown';
-    const gb = bytes / (1024 * 1024 * 1024);
-    return `${gb.toFixed(1)} GB`;
+  extractFamily(modelName) {
+    const name = modelName.toLowerCase();
+    if (name.includes('qwen')) return 'Qwen';
+    if (name.includes('llama')) return 'Llama';
+    if (name.includes('mistral')) return 'Mistral';
+    if (name.includes('gemma')) return 'Gemma';
+    if (name.includes('phi')) return 'Phi';
+    if (name.includes('dolphin')) return 'Llama (Dolphin)';
+    if (name.includes('uncensored')) return 'Uncensored';
+    return 'Unknown';
+  },
+
+  extractParameters(modelName) {
+    const name = modelName.toLowerCase();
+    // Extract from model name like "qwen3.5:9b-64k" or "dolphin-llama3:8b"
+    const paramMatch = name.match(/[:\-_](\d+(?:\.\d+)?)(b|m)/i);
+    if (paramMatch) {
+      const val = paramMatch[1];
+      const unit = paramMatch[2].toLowerCase();
+      return unit === 'b' ? `${val}B` : `${val}M`;
+    }
+    return 'Unknown';
   },
 
   estimateContext(family) {
