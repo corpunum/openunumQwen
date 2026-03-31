@@ -201,7 +201,9 @@
     
     /* Panels */
     .panel { display: none; padding: 30px; }
-    .panel.active { display: block; }
+    .panel.active { display: flex; flex-direction: column; }
+    .panel#chat-panel { padding: 0; }
+    .panel#chat-panel .messages { flex: 1; }
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
