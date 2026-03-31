@@ -376,8 +376,22 @@
 
     // Send chat message
     async function sendMessage() {
-      const task = chatInput.value.trim();
+      let task = chatInput.value.trim();
       if (!task || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+      // Handle commands
+      if (task === '/new' || task === '/reset' || task === '/clear') {
+        clearChatHistory();
+        addMessage('system', '🗑️ Chat cleared. Type /help for commands.');
+        chatInput.value = '';
+        return;
+      }
+
+      if (task === '/help') {
+        addMessage('system', '📖 Commands: /new (clear chat), /help (this message)');
+        chatInput.value = '';
+        return;
+      }
 
       addMessage('user', task);
       chatInput.value = '';
