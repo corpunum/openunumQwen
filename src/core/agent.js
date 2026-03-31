@@ -173,11 +173,21 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
       const response = await this.callModel(
         this.buildSystemPrompt(task, this.sessionHistory),
         argsPrompt,
-        { temperature: 0.2, maxTokens: 500 }
+        { temperature: 0.1, maxTokens: 300 }
       );
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const parsed = JSON.parse(jsonMatch[0]);
+        // Validate required fields for known tools
+        if (step.tool === 'file_write' && (!parsed.path || parsed.content === undefined)) {
+          console.warn('[Args] Invalid file_write args, using defaults');
+          return { path: 'docs/output.md', content: 'Generated content' };
+        }
+        if (step.tool === 'file_read' && !parsed.path) {
+          console.warn('[Args] Invalid file_read args, using defaults');
+          return { path: 'docs/output.md' };
+        }
+        return parsed;
       }
       return {};
     } catch (e) {
