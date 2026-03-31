@@ -641,14 +641,13 @@
 
       // Handle commands
       if (task === '/new' || task === '/reset' || task === '/clear') {
-        clearChatHistory();
-        addMessage('system', '🗑️ Chat cleared. Type /help for commands.');
+        createNewSession();
         chatInput.value = '';
         return;
       }
 
       if (task === '/help') {
-        addMessage('system', '📖 Commands: /new (clear chat), /help (this message)');
+        addMessage('system', '📖 Commands: /new (new chat), /help (this message)');
         chatInput.value = '';
         return;
       }
