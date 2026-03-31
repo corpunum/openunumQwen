@@ -288,6 +288,8 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
     const { GitTool } = await import('../tools/git.js');
     const { MemoryTool } = await import('../tools/memory.js');
     const { HealthTool } = await import('../tools/health.js');
+    const { SkillTool } = await import('../tools/skills.js');
+    const { EmailTool } = await import('../tools/email.js');
 
     const tools = {
       browser_navigate: BrowserTool.navigate,
@@ -301,7 +303,17 @@ Example for file_write: {"path": "docs/test.md", "content": "hello"}`;
       git_push: GitTool.push,
       memory_store: MemoryTool.store,
       memory_search: MemoryTool.search,
-      health_check: HealthTool.check
+      health_check: HealthTool.check,
+      skill_install: SkillTool.install,
+      skill_list: SkillTool.list,
+      skill_approve: SkillTool.approve,
+      skill_execute: SkillTool.execute,
+      skill_uninstall: SkillTool.uninstall,
+      email_send: EmailTool.send,
+      email_send_html: EmailTool.sendHtml,
+      email_list: EmailTool.list,
+      email_read: EmailTool.read,
+      email_check_status: EmailTool.checkStatus
     };
 
     if (!tools[toolName]) {
