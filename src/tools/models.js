@@ -17,26 +17,38 @@ export const ModelsTool = {
       summary: {}
     };
 
-    // Local models via Ollama
+    // Local models via Ollama - parse text output (ollama list doesn't support --format json)
     if (source === 'all' || source === 'local') {
       try {
-        const { stdout } = await execAsync('ollama list --format json', {
+        const { stdout } = await execAsync('ollama list', {
           timeout: 10000
         });
-        const models = JSON.parse(stdout);
         
-        for (const m of (models.models || [])) {
-          const details = await this.getModelDetails(m.name);
-          results.local.push({
-            name: m.name,
-            size: this.formatSize(m.size),
-            modified: m.modified_at ? new Date(m.modified_at).toLocaleDateString() : 'Unknown',
-            family: m.details?.family || 'Unknown',
-            parameters: m.details?.parameter_size || 'Unknown',
-            quantization: m.details?.quantization_level || 'Unknown',
-            context: this.estimateContext(m.details?.family),
-            goodFor: this.getUseCase(m.details?.family, m.details?.parameter_size)
-          });
+        const lines = stdout.trim().split('\n').slice(1); // Skip header
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          
+          // Parse: NAME         ID              SIZE      MODIFIED
+          const parts = line.split(/\s+/);
+          if (parts.length >= 4) {
+            const name = parts[0];
+            const size = parts[2];
+            const modified = parts[3];
+            
+            // Get more details via ollama show
+            const details = await this.getModelDetails(name);
+            
+            results.local.push({
+              name: name,
+              size: size,
+              modified: modified,
+              family: details.family || this.extractFamily(name),
+              parameters: details.parameters || this.extractParameters(name),
+              quantization: details.quantization || 'Unknown',
+              context: this.estimateContext(details.family || name),
+              goodFor: this.getUseCase(details.family || name, details.parameters)
+            });
+          }
         }
       } catch (e) {
         results.localError = e.message;
