@@ -47,6 +47,57 @@
     .nav-item:hover { background: rgba(34, 211, 238, 0.1); border-color: rgba(34, 211, 238, 0.3); }
     .nav-item.active { background: rgba(34, 211, 238, 0.15); border-color: var(--accent); color: var(--accent); }
     
+    /* Session items in sidebar */
+    .session-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.02);
+    }
+    .session-item:hover { 
+      background: rgba(34, 211, 238, 0.1); 
+      border-color: rgba(34, 211, 238, 0.2); 
+    }
+    .session-item.active { 
+      background: rgba(34, 211, 238, 0.12); 
+      border-color: var(--accent); 
+    }
+    .session-item-title {
+      font-size: 0.85em;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .session-item-meta {
+      font-size: 0.7em;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .session-item-delete {
+      opacity: 0;
+      transition: opacity 0.2s;
+      background: none;
+      border: none;
+      color: var(--bad);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    .session-item:hover .session-item-delete {
+      opacity: 1;
+    }
+    .session-item-delete:hover {
+      background: rgba(248, 113, 113, 0.2);
+    }
+    
     /* Main */
     .main { 
       display: flex; 
