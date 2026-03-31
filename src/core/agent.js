@@ -22,6 +22,7 @@ export class Agent {
     this.memory = new MemoryManager();
     this.circuitBreaker = new CircuitBreaker();
     this.contextManager = new ContextManager();
+    this.sessionManager = new SessionManager();
     this.sessionHistory = [];
     this.toolFailures = new Map();
     this.toolCounts = new Map();
