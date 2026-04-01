@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenUnum Qwen</title>
+  <title>Autonomy UI</title>
   <style>
     :root {
       --bg0: #0b1115;
@@ -15,19 +15,65 @@
       --accent: #44b6ff;
       --good: #58d68d;
       --bad: #ff7b7b;
+      --bubble-user: #1f4760;
+      --bubble-user-line: #336c8f;
+      --bubble-assistant: #1a2730;
+      --bubble-assistant-line: #2c414f;
+    }
+    body[data-skin="bat-clean"] {
+      --bg0: #0f1318;
+      --bg1: #161d26;
+      --bg2: #1b2531;
+      --line: #2a3647;
+      --accent: #60c7ff;
+      --bubble-user: #244d67;
+      --bubble-user-line: #3c779a;
+      --bubble-assistant: #1c2430;
+      --bubble-assistant-line: #334154;
+    }
+    body[data-skin="claude-sand"] {
+      --bg0: #17130f;
+      --bg1: #211c16;
+      --bg2: #29231b;
+      --line: #453a2d;
+      --accent: #ffb35c;
+    }
+    body[data-skin="qwen-emerald"] {
+      --bg0: #08130f;
+      --bg1: #0e1f19;
+      --bg2: #133027;
+      --line: #275042;
+      --accent: #4fd4a8;
+    }
+    body[data-skin="codex-grid"] {
+      --bg0: #090d17;
+      --bg1: #11172a;
+      --bg2: #19233a;
+      --line: #2a3c62;
+      --accent: #6db2ff;
+    }
+    body[data-skin="gemini-graphite"] {
+      --bg0: #0d1014;
+      --bg1: #171d24;
+      --bg2: #212a34;
+      --line: #344353;
+      --accent: #8bc2ff;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; color: var(--text); background: radial-gradient(1200px 600px at 85% -10%, #1a3f56 0%, var(--bg0) 60%); font-family: "IBM Plex Sans", "Segoe UI", sans-serif; }
-    .app { display: grid; grid-template-columns: 280px 1fr 360px; grid-template-rows: 1fr 40px; height: 100vh; }
-    .left { grid-column: 1; grid-row: 1; border-right: 1px solid var(--line); background: linear-gradient(180deg, var(--bg1), #0f171d); display: flex; flex-direction: column; }
-    .main { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; min-width: 0; }
+    .app { display: grid; grid-template-columns: 280px 1fr 390px; grid-template-rows: 1fr 40px; height: 100vh; }
+    .left { grid-column: 1; grid-row: 1; border-right: 1px solid var(--line); background: linear-gradient(180deg, var(--bg1), #0f171d); display: flex; flex-direction: column; min-height: 0; }
+    .main { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
     .right { grid-column: 3; grid-row: 1; border-left: 1px solid var(--line); background: linear-gradient(180deg, var(--bg1), #101920); overflow: auto; }
     .status { grid-column: 1 / span 3; grid-row: 2; border-top: 1px solid var(--line); padding: 10px 12px; color: var(--muted); background: #0d1419; font-size: 12px; display: flex; align-items: center; gap: 14px; }
 
     .section { padding: 12px; }
-    .section h3 { margin: 0 0 10px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .brand { padding: 12px 12px 2px; }
+    .brand-title { font-size: 15px; font-weight: 700; }
+    .brand-sub { font-size: 12px; color: var(--muted); }
     .btn { background: #18303d; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
     .btn:hover { border-color: var(--accent); }
+    .btn.small { padding: 7px 10px; font-size: 12px; }
     .input, .select, textarea { width: 100%; background: #0f1b23; border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; }
     .input:focus, .select:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
@@ -38,26 +84,42 @@
     .session .title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .session .meta { margin-top: 4px; font-size: 11px; color: var(--muted); }
 
-    .messages { flex: 1; overflow: auto; padding: 16px 20px 100px; }
-    .bubble { max-width: 78%; margin-bottom: 10px; padding: 10px 12px; border-radius: 16px; line-height: 1.4; white-space: pre-wrap; }
-    .bubble.user { margin-left: auto; background: #1f4760; border: 1px solid #336c8f; }
-    .bubble.assistant { margin-right: auto; background: #1a2730; border: 1px solid #2c414f; }
+    .quick-prompts { padding: 10px 14px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .qp { border: 1px solid var(--line); background: #10202a; color: var(--text); border-radius: 999px; font-size: 12px; padding: 6px 10px; cursor: pointer; max-width: 100%; }
+    .qp:hover { border-color: var(--accent); }
+
+    .messages { flex: 1; overflow: auto; padding: 14px 20px 100px; }
+    .bubble { max-width: 80%; margin-bottom: 10px; padding: 10px 12px; border-radius: 16px; line-height: 1.4; white-space: pre-wrap; }
+    .bubble.user { margin-left: auto; background: var(--bubble-user); border: 1px solid var(--bubble-user-line); }
+    .bubble.assistant { margin-right: auto; background: var(--bubble-assistant); border: 1px solid var(--bubble-assistant-line); }
     .composer { position: sticky; bottom: 0; border-top: 1px solid var(--line); background: linear-gradient(180deg, #10191f 0%, #0f171d 100%); padding: 12px; }
     .composer-grid { display: grid; grid-template-columns: 1fr 110px; gap: 10px; }
 
     .card { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin: 10px 12px; background: #121e26; }
+    .card h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
     .row { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
     .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; border: 1px solid var(--line); color: var(--muted); }
     .pill.good { border-color: #2f7c5b; color: var(--good); }
     .pill.bad { border-color: #7d3a3a; color: var(--bad); }
     .trace { max-height: 220px; overflow: auto; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: #c8d8e4; background: #0d151b; border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+    .kv { font-size: 12px; color: var(--muted); margin: 2px 0; }
+    .feat-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .feat-table td { border-bottom: 1px solid #1e313d; padding: 6px 4px; }
+    .feat-table td:last-child { text-align: right; }
 
-    @media (max-width: 1200px) { .app { grid-template-columns: 250px 1fr; } .right { display:none; } }
+    .mission-row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid #1e313d; font-size: 12px; }
+    .mission-row:last-child { border-bottom: none; }
+
+    @media (max-width: 1240px) { .app { grid-template-columns: 250px 1fr; } .right { display:none; } }
   </style>
 </head>
 <body>
   <div class="app">
     <aside class="left">
+      <div class="brand">
+        <div class="brand-title" id="appTitle">Agent</div>
+        <div class="brand-sub" id="appSubtitle">Autonomy-first runtime</div>
+      </div>
       <div class="section">
         <button class="btn" data-testid="new-session" id="newSessionBtn">New Session</button>
       </div>
@@ -68,6 +130,7 @@
     </aside>
 
     <main class="main">
+      <div class="quick-prompts" id="quickPrompts"></div>
       <div class="messages" data-testid="message-stream" id="messageStream"></div>
       <div class="composer">
         <div class="composer-grid">
@@ -79,6 +142,7 @@
 
     <aside class="right">
       <div class="card">
+        <h3>Routing</h3>
         <div class="row">
           <label>Provider</label>
           <select class="select" data-testid="provider-select" id="providerSelect"></select>
@@ -106,6 +170,24 @@
       </div>
 
       <div class="card">
+        <h3>Backend Modules</h3>
+        <div class="kv" id="runtimeInfo"></div>
+        <table class="feat-table" id="backendFeatures"></table>
+      </div>
+
+      <div class="card">
+        <h3>Missions</h3>
+        <div class="row">
+          <textarea class="input" id="missionGoal" rows="2" placeholder="Define mission goal"></textarea>
+        </div>
+        <div class="row" style="grid-template-columns: 1fr 1fr; display:grid; gap:8px;">
+          <button class="btn small" id="startMissionBtn">Start Mission</button>
+          <button class="btn small" id="refreshMissionsBtn">Refresh</button>
+        </div>
+        <div id="missionsList"></div>
+      </div>
+
+      <div class="card">
         <h3>Trace</h3>
         <div class="trace" data-testid="trace-panel" id="tracePanel"></div>
       </div>
@@ -123,6 +205,7 @@
     const providerOrder = ['ollama', 'nvidia', 'openrouter', 'openai'];
     let modelCatalog = null;
     let providerConfig = null;
+    let capabilities = null;
     let sessions = [];
     let currentSessionId = null;
 
@@ -132,9 +215,7 @@
       return d.innerHTML;
     }
 
-    function setStatus(msg) {
-      document.getElementById('statusInfo').textContent = msg;
-    }
+    function setStatus(msg) { document.getElementById('statusInfo').textContent = msg; }
 
     function appendTrace(line) {
       const p = document.getElementById('tracePanel');
@@ -145,6 +226,7 @@
 
     async function jget(path) {
       const res = await fetch(path, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`${path} ${res.status}`);
       return res.json();
     }
 
@@ -154,7 +236,40 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body || {}),
       });
+      if (!res.ok) throw new Error(`${path} ${res.status}`);
       return res.json();
+    }
+
+    function renderQuickPrompts() {
+      const root = document.getElementById('quickPrompts');
+      const prompts = (capabilities?.quick_prompts || []).slice(0, 4);
+      root.innerHTML = prompts.map((p) => `<button class="qp">${esc(p)}</button>`).join('');
+      root.querySelectorAll('.qp').forEach((el) => {
+        el.addEventListener('click', () => {
+          document.getElementById('composerInput').value = el.textContent;
+          document.getElementById('composerInput').focus();
+        });
+      });
+    }
+
+    function renderBackendFeatures() {
+      const table = document.getElementById('backendFeatures');
+      const features = Object.entries(capabilities?.features || {});
+      table.innerHTML = features.map(([k, v]) => `
+        <tr>
+          <td>${esc(k.replace(/_/g, ' '))}</td>
+          <td><span class="pill ${v ? 'good' : 'bad'}">${v ? 'on' : 'off'}</span></td>
+        </tr>
+      `).join('');
+
+      const runtime = capabilities?.runtime || {};
+      const runtimeLines = [
+        `host: ${runtime.host || '-'}`,
+        `port: ${runtime.port || '-'}`,
+        runtime.home ? `home: ${runtime.home}` : '',
+        runtime.workspace_root ? `workspace: ${runtime.workspace_root}` : '',
+      ].filter(Boolean);
+      document.getElementById('runtimeInfo').innerHTML = runtimeLines.map((x) => `<div class="kv">${esc(x)}</div>`).join('');
     }
 
     function renderSessions() {
@@ -172,7 +287,7 @@
 
     async function refreshSessions() {
       const out = await jget('/api/sessions');
-      sessions = out.sessions || [];
+      sessions = Array.isArray(out) ? out : (out.sessions || []);
       if (!currentSessionId && sessions.length) currentSessionId = sessions[0].id;
       renderSessions();
       document.getElementById('statusSession').textContent = `session: ${currentSessionId || '-'}`;
@@ -182,7 +297,8 @@
       currentSessionId = id;
       renderSessions();
       const out = await jget(`/api/sessions/${encodeURIComponent(id)}`);
-      const msgs = out.session?.messages || [];
+      const payload = out.session || out;
+      const msgs = payload?.messages || [];
       const stream = document.getElementById('messageStream');
       stream.innerHTML = msgs.map((m) => `<div class="bubble ${m.role === 'user' ? 'user' : 'assistant'}">${esc(m.content)}</div>`).join('');
       stream.scrollTop = stream.scrollHeight;
@@ -222,19 +338,50 @@
       }).join('');
     }
 
+    function applyIdentity() {
+      const appName = capabilities?.app_name || 'Agent';
+      document.title = appName;
+      document.getElementById('appTitle').textContent = appName;
+      document.getElementById('appSubtitle').textContent = `${capabilities?.app_id || 'runtime'} | ${providerConfig?.autonomyMode || 'autonomy-first'}`;
+      document.body.dataset.skin = capabilities?.ui?.skin || '';
+    }
+
     async function refreshConfigAndCatalog() {
       const cfg = await jget('/api/config');
       providerConfig = cfg.providerConfig;
       modelCatalog = cfg.modelCatalog;
+      capabilities = cfg.capabilities || await jget('/api/capabilities');
+      applyIdentity();
+      renderQuickPrompts();
       renderProviderSelectors();
       renderProviderHealth();
+      renderBackendFeatures();
       document.getElementById('statusProvider').textContent = `provider: ${providerConfig.provider}`;
       document.getElementById('statusModel').textContent = `model: ${providerConfig.model}`;
     }
 
+    async function refreshMissions() {
+      const out = await jget('/api/missions');
+      const missions = out.missions || [];
+      const root = document.getElementById('missionsList');
+      root.innerHTML = missions.slice(0, 8).map((m) => `
+        <div class="mission-row">
+          <div><strong>${esc(m.status)}</strong><div class="kv">${esc((m.goal || '').slice(0, 56))}</div></div>
+          ${m.status === 'running' ? `<button class="btn small" data-stop="${esc(m.id)}">Stop</button>` : ''}
+        </div>
+      `).join('');
+      root.querySelectorAll('[data-stop]').forEach((el) => {
+        el.addEventListener('click', async () => {
+          await jpost('/api/missions/stop', { id: el.getAttribute('data-stop') });
+          await refreshMissions();
+        });
+      });
+    }
+
     async function newSession() {
       const out = await jpost('/api/sessions', {});
-      currentSessionId = out.session.id;
+      const session = out.session || out;
+      currentSessionId = session.id;
       await refreshSessions();
       await openSession(currentSessionId);
       setStatus('new session created');
@@ -252,8 +399,8 @@
       setStatus('running');
       appendTrace(`chat.started provider=${providerConfig.provider} model=${providerConfig.model}`);
 
-      const out = await jpost('/api/chat', { sessionId: currentSessionId, message: text });
-      const reply = out.reply || out.response || '(no response)';
+      const out = await jpost('/api/chat', { sessionId: currentSessionId, message: text, task: text });
+      const reply = out.reply || out.response || out.answer || '(no response)';
       stream.innerHTML += `<div class="bubble assistant">${esc(reply)}</div>`;
       stream.scrollTop = stream.scrollHeight;
       await refreshSessions();
@@ -268,47 +415,50 @@
       const fallbackProvider = String(fallbackModel).split('/')[0] || 'nvidia';
       const autonomyMode = document.getElementById('autonomyModeSelect').value;
       await jpost('/api/config', {
-        providerConfig: {
-          provider,
-          model,
-          fallbackProvider,
-          fallbackModel,
-          autonomyMode,
-        },
+        providerConfig: { provider, model, fallbackProvider, fallbackModel, autonomyMode },
       });
       await refreshConfigAndCatalog();
       setStatus('routing saved');
       appendTrace(`health.updated provider=${provider} model=${provider}/${model}`);
     }
 
+    async function startMission() {
+      const goal = String(document.getElementById('missionGoal').value || '').trim();
+      if (!goal) return;
+      await jpost('/api/missions/start', { goal });
+      document.getElementById('missionGoal').value = '';
+      await refreshMissions();
+      appendTrace('mission.started');
+    }
+
     function connectWS() {
       const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
       const ws = new WebSocket(`${protocol}://${location.host}/ws`);
-      ws.onmessage = (event) => {
+      ws.onmessage = async (event) => {
         try {
           const msg = JSON.parse(event.data);
           if (msg.type === 'event' && msg.event) {
             appendTrace(`${msg.event.type}`);
+            if (String(msg.event.type || '').startsWith('mission.')) await refreshMissions();
           }
         } catch {}
       };
-      ws.onclose = () => setTimeout(connectWS, 1000);
+      ws.onclose = () => setTimeout(connectWS, 1200);
     }
 
     document.getElementById('newSessionBtn').addEventListener('click', newSession);
     document.getElementById('sessionSearch').addEventListener('input', renderSessions);
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('composerInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
     document.getElementById('providerSelect').addEventListener('change', () => {
       providerConfig.provider = document.getElementById('providerSelect').value;
       renderProviderSelectors();
     });
     document.getElementById('saveRoutingBtn').addEventListener('click', saveRouting);
+    document.getElementById('startMissionBtn').addEventListener('click', startMission);
+    document.getElementById('refreshMissionsBtn').addEventListener('click', refreshMissions);
 
     (async function bootstrap() {
       connectWS();
@@ -316,6 +466,7 @@
       await refreshSessions();
       if (!currentSessionId) await newSession();
       else await openSession(currentSessionId);
+      await refreshMissions();
       appendTrace('ui.ready');
     })().catch((e) => {
       setStatus(`boot error: ${e.message}`);
