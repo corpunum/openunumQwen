@@ -16,13 +16,30 @@ const APP_HOME = process.env.OPENUNUM_QWEN_HOME || join(os.homedir(), '.openunum
 const DEFAULTS = {
   appHome: APP_HOME,
   provider: 'ollama',
-  model: 'qwen3.5:9b-64k',
+  model: 'ollama/qwen3.5:9b-64k',
   baseUrl: 'http://127.0.0.1:11434/v1',
   apiKey: '',
-  fallbackModel: 'minimax-m2.5:cloud',
+  fallbackModel: 'nvidia/meta/llama-3.1-405b-instruct',
   fallbackBaseUrl: 'http://127.0.0.1:11434/v1',
+  fallbackProvider: 'nvidia',
+  fallbackOrder: ['ollama', 'nvidia', 'openrouter', 'openai'],
+  providerModels: {
+    ollama: 'ollama/qwen3.5:397b-cloud',
+    nvidia: 'nvidia/meta/llama-3.1-405b-instruct',
+    openrouter: 'openrouter/anthropic/claude-3.5-sonnet',
+    openai: 'openai/gpt-5.4'
+  },
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434/v1',
+  nvidiaBaseUrl: process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+  openrouterBaseUrl: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
+  openaiBaseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+  ollamaApiKey: process.env.OLLAMA_API_KEY || '',
+  nvidiaApiKey: process.env.NVIDIA_API_KEY || '',
+  openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
   uiPort: 18881,
   uiHost: '127.0.0.1',
+  autonomyMode: 'autonomy-first',
   browserMode: 'playwright',
   cdpPort: 9333,
   githubToken: '',
@@ -42,7 +59,7 @@ const DEFAULTS = {
 };
 
 const SCHEMA = {
-  provider: { type: 'string', required: true, enum: ['ollama', 'openai', 'anthropic', 'nvidia', 'openrouter', 'ollama-cloud'] },
+  provider: { type: 'string', required: true, enum: ['ollama', 'openai', 'generic', 'nvidia', 'openrouter', 'ollama-cloud', 'ollama-local'] },
   model: { type: 'string', required: true },
   baseUrl: { type: 'string', required: true },
   apiKey: { type: 'string', required: false },
@@ -158,6 +175,64 @@ export function loadConfig() {
   config.sessionsDir = resolve(config.sessionsDir || join(config.appHome, 'data', 'sessions'));
   config.configFilePath = resolve(config.configFilePath || configPath);
   configPath = config.configFilePath;
+
+  const normalizeProvider = (p) => {
+    const v = String(p || 'ollama').trim().toLowerCase();
+    if (v === 'generic') return 'openai';
+    if (v === 'ollama-cloud' || v === 'ollama-local') return 'ollama';
+    return v;
+  };
+
+  const normalizeModel = (provider, model) => {
+    const p = normalizeProvider(provider);
+    const raw = String(model || '').trim();
+    if (!raw) return '';
+    if (/^(ollama|nvidia|openrouter|openai|generic)\//.test(raw)) return raw.replace(/^generic\//, 'openai/');
+    return `${p}/${raw}`;
+  };
+
+  config.provider = normalizeProvider(config.provider);
+  config.fallbackProvider = normalizeProvider(config.fallbackProvider || config.fallbackOrder?.find((p) => normalizeProvider(p) !== config.provider) || 'nvidia');
+  config.fallbackOrder = Array.isArray(config.fallbackOrder) && config.fallbackOrder.length
+    ? config.fallbackOrder.map((p) => normalizeProvider(p))
+    : ['ollama', 'nvidia', 'openrouter', 'openai'];
+
+  config.providerModels = {
+    ollama: normalizeModel('ollama', config.providerModels?.ollama || DEFAULTS.providerModels.ollama),
+    nvidia: normalizeModel('nvidia', config.providerModels?.nvidia || DEFAULTS.providerModels.nvidia),
+    openrouter: normalizeModel('openrouter', config.providerModels?.openrouter || DEFAULTS.providerModels.openrouter),
+    openai: normalizeModel('openai', config.providerModels?.openai || DEFAULTS.providerModels.openai),
+  };
+
+  config.model = normalizeModel(config.provider, config.model || config.providerModels[config.provider]);
+  config.fallbackModel = normalizeModel(config.fallbackProvider, config.fallbackModel || config.providerModels[config.fallbackProvider]);
+
+  config.ollamaBaseUrl = config.ollamaBaseUrl || config.baseUrl || DEFAULTS.ollamaBaseUrl;
+  config.nvidiaBaseUrl = config.nvidiaBaseUrl || DEFAULTS.nvidiaBaseUrl;
+  config.openrouterBaseUrl = config.openrouterBaseUrl || DEFAULTS.openrouterBaseUrl;
+  config.openaiBaseUrl = config.openaiBaseUrl || DEFAULTS.openaiBaseUrl;
+
+  config.ollamaApiKey = config.ollamaApiKey || '';
+  config.nvidiaApiKey = config.nvidiaApiKey || '';
+  config.openrouterApiKey = config.openrouterApiKey || '';
+  config.openaiApiKey = config.openaiApiKey || '';
+
+  const activeBaseMap = {
+    ollama: config.ollamaBaseUrl,
+    nvidia: config.nvidiaBaseUrl,
+    openrouter: config.openrouterBaseUrl,
+    openai: config.openaiBaseUrl,
+  };
+  const activeKeyMap = {
+    ollama: config.ollamaApiKey,
+    nvidia: config.nvidiaApiKey,
+    openrouter: config.openrouterApiKey,
+    openai: config.openaiApiKey,
+  };
+
+  config.baseUrl = activeBaseMap[config.provider] || config.baseUrl;
+  config.apiKey = activeKeyMap[config.provider] || config.apiKey || '';
+  config.fallbackBaseUrl = activeBaseMap[config.fallbackProvider] || config.fallbackBaseUrl;
   
   return config;
 }

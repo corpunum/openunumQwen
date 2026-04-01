@@ -12,7 +12,10 @@
     "health": "node scripts/health-check.js",
     "init": "node scripts/init.js",
     "research": "node scripts/research-agent.js",
-    "e2e:webui": "node tests/e2e.test.js"
+    "e2e:model-catalog": "node tests/model-catalog.e2e.js",
+    "e2e:webui": "node tests/e2e.test.js",
+    "e2e:webui-contract": "node tests/webui-contract.e2e.js",
+    "e2e": "npm run e2e:model-catalog && npm run e2e:webui && npm run e2e:webui-contract"
   },
   "keywords": [
     "autonomous",

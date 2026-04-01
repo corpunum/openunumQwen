@@ -3,1000 +3,323 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenUnum Qwen ⚡</title>
+  <title>OpenUnum Qwen</title>
   <style>
     :root {
-      --bg: #0a0f1a;
-      --bg2: #111827;
-      --panel: #1a2332;
-      --panel2: #243045;
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-      --line: #374151;
-      --accent: #22d3ee;
-      --accent2: #818cf8;
-      --good: #34d399;
-      --warn: #fbbf24;
-      --bad: #f87171;
+      --bg0: #0b1115;
+      --bg1: #111a20;
+      --bg2: #16252e;
+      --line: #27414f;
+      --text: #d9e7ef;
+      --muted: #8ca6b3;
+      --accent: #44b6ff;
+      --good: #58d68d;
+      --bad: #ff7b7b;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: linear-gradient(135deg, var(--bg), var(--bg2));
-      color: var(--text);
-      min-height: 100vh;
-    }
-    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
-    
-    /* Sidebar */
-    .sidebar {
-      background: linear-gradient(180deg, var(--panel), var(--panel2));
-      border-right: 1px solid var(--line);
-      padding: 20px;
-    }
-    .brand { font-size: 1.4em; font-weight: 700; margin-bottom: 4px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .status { color: var(--muted); font-size: 0.85em; margin-bottom: 24px; }
-    .nav-item {
-      padding: 12px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-bottom: 8px;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-    }
-    .nav-item:hover { background: rgba(34, 211, 238, 0.1); border-color: rgba(34, 211, 238, 0.3); }
-    .nav-item.active { background: rgba(34, 211, 238, 0.15); border-color: var(--accent); color: var(--accent); }
-    
-    /* Session items in sidebar */
-    .session-item {
-      padding: 10px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-bottom: 6px;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-      background: rgba(255,255,255,0.02);
-    }
-    .session-item:hover { 
-      background: rgba(34, 211, 238, 0.1); 
-      border-color: rgba(34, 211, 238, 0.2); 
-    }
-    .session-item.active { 
-      background: rgba(34, 211, 238, 0.12); 
-      border-color: var(--accent); 
-    }
-    .session-item-title {
-      font-size: 0.85em;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 4px;
-    }
-    .session-item-meta {
-      font-size: 0.7em;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .session-item-delete {
-      opacity: 0;
-      transition: opacity 0.2s;
-      background: none;
-      border: none;
-      color: var(--bad);
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 1em;
-    }
-    .session-item:hover .session-item-delete {
-      opacity: 1;
-    }
-    .session-item-delete:hover {
-      background: rgba(248, 113, 113, 0.2);
-    }
-    
-    /* Main */
-    .main { 
-      display: flex; 
-      flex-direction: column; 
-      height: 100vh;
-      overflow: hidden;
-    }
-    .header {
-      padding: 20px 30px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    .health-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
-    .health-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--good); box-shadow: 0 0 10px var(--good); }
-    .health-dot.degraded { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
-    .health-dot.unhealthy { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
-    
-    /* Chat Panel - Scrollable Chat Window */
-    #chat-panel {
-      display: none !important;
-      max-width: 900px;
-      margin: 0 auto;
-      width: 100%;
-    }
-    #chat-panel.active {
-      display: block !important;
-    }
-    #chat-panel .messages {
-      height: 500px !important;
-      min-height: 400px !important;
-      max-height: 60vh !important;
-      overflow-y: scroll !important;
-      overflow-x: hidden !important;
-      padding: 10px !important;
-      margin-bottom: 16px !important;
-      border: 1px solid var(--line) !important;
-      border-radius: 8px !important;
-      background: var(--panel) !important;
-    }
-    #chat-panel .messages::-webkit-scrollbar {
-      width: 12px !important;
-    }
-    #chat-panel .messages::-webkit-scrollbar-track {
-      background: var(--bg2) !important;
-      border-radius: 6px !important;
-    }
-    #chat-panel .messages::-webkit-scrollbar-thumb {
-      background: var(--accent) !important;
-      border-radius: 6px !important;
-      border: 2px solid var(--bg2) !important;
-    }
-    #chat-panel .messages::-webkit-scrollbar-thumb:hover {
-      background: var(--accent2) !important;
-    }
-    #chat-panel .composer {
-      margin-top: 16px !important;
-    }
-    .messages::-webkit-scrollbar { width: 8px; }
-    .messages::-webkit-scrollbar-track { background: var(--bg2); border-radius: 4px; }
-    .messages::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; border: 2px solid var(--bg2); }
-    .messages::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-    .messages::-webkit-scrollbar-corner { background: var(--bg2); }
-    
-    /* Ensure messages scroll to bottom on new content */
-    .messages.auto-scroll { scroll-behavior: smooth; }
-    .message {
-      margin-bottom: 16px;
-      padding: 14px 18px;
-      border-radius: 12px;
-      max-width: 85%;
-      line-height: 1.5;
-    }
-    .message.user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, var(--accent2), #6366f1);
-      margin-left: auto;
-      border-bottom-right-radius: 4px;
-    }
-    .message.ai {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-bottom-left-radius: 4px;
-    }
-    .message.system {
-      align-self: center;
-      background: rgba(52, 211, 153, 0.1);
-      color: var(--good);
-      border: 1px dashed rgba(52, 211, 153, 0.3);
-      font-size: 0.85em;
-      padding: 8px 16px;
-      border-radius: 20px;
-    }
-    
-    /* Composer - Fixed at bottom */
-    .composer {
-      display: flex;
-      gap: 12px;
-      padding-top: 20px;
-      border-top: 1px solid var(--line);
-      flex-shrink: 0;
-    }
-    input[type="text"] {
-      flex: 1;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      color: var(--text);
-      padding: 14px 18px;
-      border-radius: 10px;
-      outline: none;
-      font-size: 0.95em;
-      transition: border-color 0.2s;
-    }
-    input[type="text"]:focus { border-color: var(--accent); }
-    button {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: var(--bg);
-      border: none;
-      padding: 14px 24px;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
-    }
-    button:hover { opacity: 0.9; }
-    button:active { transform: scale(0.98); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    
-    /* Message animations */
-    .message {
-      animation: fadeIn 0.2s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Tool calls */
-    .tool-call {
-      margin-top: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--bg2);
-    }
-    .tool-header {
-      padding: 8px 12px;
-      background: var(--panel2);
-      cursor: pointer;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8em;
-      color: var(--accent);
-      display: flex;
-      justify-content: space-between;
-    }
-    .tool-content {
-      padding: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85em;
-      background: #0d1117;
-      color: #a5d6ff;
-      white-space: pre-wrap;
-      display: none;
-    }
-    .tool-call.expanded .tool-content { display: block; }
-    
-    /* Panels */
-    .panel { display: none; }
-    .panel.active { display: block; }
-    
-    /* Chat Panel - Special Flex Layout */
-    #chat-panel {
-      display: none !important;
-      height: calc(100vh - 80px);
-      padding: 20px 30px;
-      overflow: hidden;
-    }
-    #chat-panel.active {
-      display: flex !important;
-      flex-direction: column;
-    }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .card h3 { margin-bottom: 12px; color: var(--accent); }
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    .stat { background: var(--bg2); padding: 12px; border-radius: 8px; text-align: center; }
-    .stat-value { font-size: 1.8em; font-weight: 700; color: var(--accent); }
-    .stat-label { font-size: 0.8em; color: var(--muted); margin-top: 4px; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; color: var(--text); background: radial-gradient(1200px 600px at 85% -10%, #1a3f56 0%, var(--bg0) 60%); font-family: "IBM Plex Sans", "Segoe UI", sans-serif; }
+    .app { display: grid; grid-template-columns: 280px 1fr 360px; grid-template-rows: 1fr 40px; height: 100vh; }
+    .left { grid-column: 1; grid-row: 1; border-right: 1px solid var(--line); background: linear-gradient(180deg, var(--bg1), #0f171d); display: flex; flex-direction: column; }
+    .main { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; min-width: 0; }
+    .right { grid-column: 3; grid-row: 1; border-left: 1px solid var(--line); background: linear-gradient(180deg, var(--bg1), #101920); overflow: auto; }
+    .status { grid-column: 1 / span 3; grid-row: 2; border-top: 1px solid var(--line); padding: 10px 12px; color: var(--muted); background: #0d1419; font-size: 12px; display: flex; align-items: center; gap: 14px; }
+
+    .section { padding: 12px; }
+    .section h3 { margin: 0 0 10px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .btn { background: #18303d; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+    .btn:hover { border-color: var(--accent); }
+    .input, .select, textarea { width: 100%; background: #0f1b23; border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; }
+    .input:focus, .select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+    #sessions { overflow: auto; flex: 1; }
+    .session { padding: 10px 12px; border-bottom: 1px solid #1c313d; cursor: pointer; }
+    .session:hover { background: #14222b; }
+    .session.active { background: #193345; border-left: 2px solid var(--accent); }
+    .session .title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .session .meta { margin-top: 4px; font-size: 11px; color: var(--muted); }
+
+    .messages { flex: 1; overflow: auto; padding: 16px 20px 100px; }
+    .bubble { max-width: 78%; margin-bottom: 10px; padding: 10px 12px; border-radius: 16px; line-height: 1.4; white-space: pre-wrap; }
+    .bubble.user { margin-left: auto; background: #1f4760; border: 1px solid #336c8f; }
+    .bubble.assistant { margin-right: auto; background: #1a2730; border: 1px solid #2c414f; }
+    .composer { position: sticky; bottom: 0; border-top: 1px solid var(--line); background: linear-gradient(180deg, #10191f 0%, #0f171d 100%); padding: 12px; }
+    .composer-grid { display: grid; grid-template-columns: 1fr 110px; gap: 10px; }
+
+    .card { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin: 10px 12px; background: #121e26; }
+    .row { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; border: 1px solid var(--line); color: var(--muted); }
+    .pill.good { border-color: #2f7c5b; color: var(--good); }
+    .pill.bad { border-color: #7d3a3a; color: var(--bad); }
+    .trace { max-height: 220px; overflow: auto; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: #c8d8e4; background: #0d151b; border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+
+    @media (max-width: 1200px) { .app { grid-template-columns: 250px 1fr; } .right { display:none; } }
   </style>
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="brand">⚡ OpenUnum Qwen</div>
-      <div class="status">Autonomous Assistant</div>
-      
-      <!-- New Chat Button -->
-      <button id="new-chat-btn" style="width:100%;margin-bottom:16px;background:linear-gradient(135deg, var(--accent), var(--accent2));color:var(--bg);border:none;padding:12px;border-radius:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-        <span>+</span> New Chat
-      </button>
-      
-      <!-- Sessions List -->
-      <div style="margin-bottom:8px;font-size:0.75em;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Recent Chats</div>
-      <div id="sessions-list" style="overflow-y:auto;max-height:calc(100vh - 280px);">
-        <!-- Sessions will be loaded here -->
+  <div class="app">
+    <aside class="left">
+      <div class="section">
+        <button class="btn" data-testid="new-session" id="newSessionBtn">New Session</button>
       </div>
-      
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
-        <nav>
-          <div class="nav-item active" data-panel="chat">💬 Chat</div>
-          <div class="nav-item" data-panel="config">⚙️ Configuration</div>
-          <div class="nav-item" data-panel="health">🏥 Health</div>
-          <div class="nav-item" data-panel="memory">🧠 Memory</div>
-          <div class="nav-item" data-panel="sync">🔄 Auto-Sync</div>
-        </nav>
+      <div class="section" style="padding-top:0;">
+        <input class="input" data-testid="session-search" id="sessionSearch" placeholder="Search sessions">
       </div>
+      <div id="sessions"></div>
     </aside>
 
     <main class="main">
-      <header class="header">
-        <h2 id="panel-title">Chat</h2>
-        <div style="display:flex;gap:16px;align-items:center;">
-          <div class="health-indicator">
-            <div class="health-dot" id="health-dot"></div>
-            <span id="health-text">Checking...</span>
-          </div>
-          <div id="context-usage" style="font-size:0.85em;color:var(--muted);">
-            Context: <span id="context-percent">--</span>%
-          </div>
-        </div>
-      </header>
-
-      <!-- Chat Panel -->
-      <div id="chat-panel" class="panel active chat-container">
-        <div class="messages" id="messages"></div>
-        <div class="composer">
-          <input type="text" id="chat-input" placeholder="What should I do?" />
-          <button id="send-btn">Send</button>
-        </div>
-      </div>
-
-      <!-- Config Panel -->
-      <div id="config-panel" class="panel">
-        <div class="card">
-          <h3>Model Configuration</h3>
-          <div id="config-form"></div>
-        </div>
-      </div>
-
-      <!-- Health Panel -->
-      <div id="health-panel" class="panel">
-        <div class="card">
-          <h3>System Health</h3>
-          <div class="stat-grid" id="health-stats"></div>
-        </div>
-      </div>
-
-      <!-- Memory Panel -->
-      <div id="memory-panel" class="panel">
-        <div class="card">
-          <h3>Memory Search</h3>
-          <input type="text" id="memory-search" placeholder="Search memories..." style="width:100%;margin-bottom:12px;" />
-          <div id="memory-results"></div>
-        </div>
-      </div>
-
-      <!-- Sync Panel -->
-      <div id="sync-panel" class="panel">
-        <div class="card">
-          <h3>Git Auto-Sync Status</h3>
-          <div id="sync-status"></div>
+      <div class="messages" data-testid="message-stream" id="messageStream"></div>
+      <div class="composer">
+        <div class="composer-grid">
+          <textarea class="input" data-testid="composer-input" id="composerInput" rows="2" placeholder="Set a task or mission"></textarea>
+          <button class="btn" data-testid="send-message" id="sendBtn">Send</button>
         </div>
       </div>
     </main>
+
+    <aside class="right">
+      <div class="card">
+        <div class="row">
+          <label>Provider</label>
+          <select class="select" data-testid="provider-select" id="providerSelect"></select>
+        </div>
+        <div class="row">
+          <label>Model</label>
+          <select class="select" data-testid="model-select" id="modelSelect"></select>
+        </div>
+        <div class="row">
+          <label>Fallback</label>
+          <select class="select" data-testid="fallback-model-select" id="fallbackModelSelect"></select>
+        </div>
+        <div class="row">
+          <label>Autonomy Mode</label>
+          <select class="select" data-testid="autonomy-mode-select" id="autonomyModeSelect">
+            <option value="autonomy-first">autonomy-first</option>
+          </select>
+        </div>
+        <button class="btn" id="saveRoutingBtn">Save Routing</button>
+      </div>
+
+      <div class="card">
+        <h3>Provider Health</h3>
+        <div data-testid="provider-health" id="providerHealth"></div>
+      </div>
+
+      <div class="card">
+        <h3>Trace</h3>
+        <div class="trace" data-testid="trace-panel" id="tracePanel"></div>
+      </div>
+    </aside>
+
+    <footer class="status" data-testid="status-bar" id="statusBar">
+      <span id="statusProvider">provider: -</span>
+      <span id="statusModel">model: -</span>
+      <span id="statusSession">session: -</span>
+      <span id="statusInfo">ready</span>
+    </footer>
   </div>
 
   <script>
-    let ws = null;
-    const messagesEl = document.getElementById('messages');
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    const healthDot = document.getElementById('health-dot');
-    const healthText = document.getElementById('health-text');
-    const CHAT_STORAGE_KEY = 'openunum_chat_history';
+    const providerOrder = ['ollama', 'nvidia', 'openrouter', 'openai'];
+    let modelCatalog = null;
+    let providerConfig = null;
+    let sessions = [];
+    let currentSessionId = null;
 
-    // Load chat history from localStorage
-    function loadChatHistory() {
-      try {
-        const saved = localStorage.getItem(CHAT_STORAGE_KEY);
-        if (saved) {
-          const history = JSON.parse(saved);
-          history.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = `message ${msg.role}`;
-            div.innerHTML = msg.content;
-            messagesEl.appendChild(div);
-          });
-          messagesEl.scrollTop = messagesEl.scrollHeight;
-          return history.length;
-        }
-      } catch (e) {
-        console.error('[Chat] Failed to load history:', e);
-      }
-      return 0;
+    function esc(text) {
+      const d = document.createElement('div');
+      d.textContent = String(text || '');
+      return d.innerHTML;
     }
 
-    // Save chat history to localStorage (fallback for session persistence)
-    function saveChatHistory() {
-      try {
-        const messages = Array.from(messagesEl.querySelectorAll('.message')).map(msg => ({
-          role: msg.classList.contains('user') ? 'user' : msg.classList.contains('system') ? 'system' : 'ai',
-          content: msg.innerHTML
-        }));
-        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-      } catch (e) {
-        console.error('[Chat] Failed to save history:', e);
-      }
+    function setStatus(msg) {
+      document.getElementById('statusInfo').textContent = msg;
     }
 
-    // Clear chat history (now creates new session instead)
-    function clearChatHistory() {
-      createNewSession();
+    function appendTrace(line) {
+      const p = document.getElementById('tracePanel');
+      const ts = new Date().toISOString().slice(11, 19);
+      p.innerHTML += `[${ts}] ${esc(line)}\n`;
+      p.scrollTop = p.scrollHeight;
     }
 
-    // Connect WebSocket
-    function connectWS() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
-      
-      ws.onopen = () => {
-        console.log('[WS] Connected');
-        updateHealth('healthy');
-      };
-      
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handleMessage(data);
-      };
-      
-      ws.onclose = () => {
-        console.log('[WS] Disconnected, reconnecting...');
-        setTimeout(connectWS, 3000);
-        updateHealth('unhealthy');
-      };
+    async function jget(path) {
+      const res = await fetch(path, { cache: 'no-store' });
+      return res.json();
     }
 
-    function handleMessage(data) {
-      if (data.type === 'status') {
-        addMessage('system', data.text);
-        saveChatHistory();
-      } else if (data.type === 'result') {
-        addMessage('ai', formatResult(data.result));
-        sendBtn.disabled = false;
-        saveChatHistory();
-        // Update context stats after receiving result
-        if (data.result.contextUsage) {
-          updateContextStats();
-        }
-      } else if (data.type === 'error') {
-        addMessage('system', 'Error: ' + data.error);
-        sendBtn.disabled = false;
-        saveChatHistory();
-      } else if (data.type === 'health') {
-        updateHealth(data.status.overall);
-        renderHealthStats(data.status);
-      }
+    async function jpost(path, body) {
+      const res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {}),
+      });
+      return res.json();
     }
 
-    function addMessage(role, content) {
-      const div = document.createElement('div');
-      div.className = `message ${role}`;
-      div.innerHTML = content;
-      messagesEl.appendChild(div);
-      
-      // Force scroll - multiple methods to ensure it works
-      messagesEl.style.overflowY = 'scroll';
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-      
-      // Debug logging
-      console.log('[Chat] Message added');
-      console.log('[Chat] scrollTop:', messagesEl.scrollTop);
-      console.log('[Chat] scrollHeight:', messagesEl.scrollHeight);
-      console.log('[Chat] clientHeight:', messagesEl.clientHeight);
-      console.log('[Chat] scrollable:', messagesEl.scrollHeight > messagesEl.clientHeight);
-      
-      // Also try scrolling after a brief delay
-      setTimeout(() => {
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-        console.log('[Chat] Delayed scroll, scrollTop:', messagesEl.scrollTop);
-      }, 100);
-    }
-
-    function formatResult(result) {
-      let html = '';
-      
-      // Completion badge at top
-      if (result.completed) {
-        html += `<div style="color:var(--good);margin-bottom:8px;font-weight:600;">✅ Task Completed</div>`;
-      } else {
-        html += `<div style="color:var(--warn);margin-bottom:8px;font-weight:600;">⚠️ Incomplete</div>`;
-      }
-      
-      // CRYSTAL CLEAR ANSWER - biggest, most prominent
-      if (result.answer) {
-        html += `<div class="answer-box" style="background:linear-gradient(135deg, rgba(0,255,136,0.08), rgba(52,211,153,0.05));border:2px solid var(--good);padding:18px;margin-bottom:16px;border-radius:10px;">
-          <div style="font-size:0.75em;color:var(--good);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;">✅ Your Answer:</div>
-          <div style="white-space:pre-wrap;line-height:1.6;font-size:0.95em;color:var(--text);">${formatMarkdown(result.answer)}</div>
-        </div>`;
-      }
-      
-      // Task summary (compact)
-      html += `<div style="font-size:0.85em;color:var(--muted);margin-bottom:12px;"><strong>Task:</strong> ${escapeHtml(result.task)}</div>`;
-      
-      // Proof if available
-      if (result.proof) {
-        html += `<div style="font-size:0.8em;color:var(--muted);margin-bottom:12px;padding:8px;background:rgba(34,211,238,0.05);border-radius:6px;">📋 Proof: ${escapeHtml(result.proof)}</div>`;
-      }
-      
-      // Context usage
-      if (result.contextUsage) {
-        const pct = Math.round(result.contextUsage.percent * 100);
-        const color = pct < 50 ? 'var(--good)' : pct < 70 ? 'var(--warn)' : 'var(--bad)';
-        html += `<div style="font-size:0.75em;color:${color};margin-bottom:12px;">📊 Context: ${pct}% used (${result.contextUsage.tokens.toLocaleString()} / ${result.contextUsage.window.toLocaleString()} tokens)</div>`;
-      }
-      
-      // Expandable step details
-      if (result.results?.length) {
-        const successCount = result.results.filter(r => r.status === 'success').length;
-        html += `<details style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px;">
-          <summary style="cursor:pointer;color:var(--muted);font-size:0.85em;font-weight:500;">
-            🔧 Execution Details: ${successCount}/${result.results.length} steps succeeded
-            ${result.iterations ? `• ${result.iterations} iterations` : ''}
-          </summary>
-          <div style="margin-top:12px;">`;
-        result.results.forEach((r, i) => {
-          const content = r.result || r.error || r.response;
-          const contentStr = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-          html += `<div class="tool-call" onclick="this.classList.toggle('expanded')" style="margin-bottom:8px;">
-            <div class="tool-header">
-              <span>Step ${r.step}: ${r.tool || r.action}</span>
-              <span>${r.status === 'success' ? '✅' : '❌'}</span>
-            </div>
-            <div class="tool-content">${escapeHtml(contentStr)}</div>
-          </div>`;
-        });
-        html += `</div></details>`;
-      }
-      
-      return html;
-    }
-
-    /**
-     * Simple markdown-like formatting for answers
-     */
-    function formatMarkdown(text) {
-      if (!text) return '';
-      
-      // Escape HTML first
-      let html = escapeHtml(text);
-      
-      // Bold **text**
-      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      
-      // Headers ## text
-      html = html.replace(/^## (.+)$/gm, '<h3 style="color:var(--accent);margin:12px 0 6px 0;font-size:1.1em;">$1</h3>');
-      html = html.replace(/^### (.+)$/gm, '<h4 style="color:var(--accent2);margin:10px 0 4px 0;font-size:1em;">$1</h4>');
-      
-      // Tables (basic)
-      html = html.replace(/\|(.+)\|/g, '<table style="margin:8px 0;"><tr>$1</tr></table>');
-      html = html.replace(/<tr>([^<]+)<\/tr><tr>([-| ]+)<\/tr>/g, '<table style="margin:8px 0;"><thead><tr>$1</tr></thead><tbody>');
-      
-      // Lists - text
-      html = html.replace(/^[-*] (.+)$/gm, '<li style="margin:4px 0;">$1</li>');
-      
-      return html;
-    }
-    
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function updateHealth(status) {
-      healthDot.className = `health-dot ${status}`;
-      healthText.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-    }
-
-    // Update context usage display
-    async function updateContextStats() {
-      try {
-        const res = await fetch('/api/context-stats');
-        const stats = await res.json();
-        const percentEl = document.getElementById('context-percent');
-        const containerEl = document.getElementById('context-usage');
-        
-        if (percentEl && stats.usagePercent !== undefined) {
-          percentEl.textContent = Math.round(stats.usagePercent * 100);
-          
-          // Color code based on usage
-          if (stats.usagePercent < 0.5) {
-            containerEl.style.color = 'var(--good)';
-          } else if (stats.usagePercent < 0.7) {
-            containerEl.style.color = 'var(--warn)';
-          } else {
-            containerEl.style.color = 'var(--bad)';
-          }
-        }
-      } catch (e) {
-        console.error('[Context] Failed to fetch stats:', e);
-      }
-    }
-
-    function renderHealthStats(health) {
-      const statsEl = document.getElementById('health-stats');
-      if (!health || !health.checks) {
-        statsEl.innerHTML = '<div class="stat"><div class="stat-value" style="color:var(--warn)">Unknown</div><div class="stat-label">No health data</div></div>';
-        return;
-      }
-      statsEl.innerHTML = Object.entries(health.checks).map(([key, check]) => `
-        <div class="stat">
-          <div class="stat-value" style="color:${check.status === 'healthy' ? 'var(--good)' : check.status === 'degraded' ? 'var(--warn)' : 'var(--bad)'}">${check.status}</div>
-          <div class="stat-label">${key}</div>
+    function renderSessions() {
+      const q = (document.getElementById('sessionSearch').value || '').toLowerCase();
+      const list = document.getElementById('sessions');
+      const filtered = sessions.filter((s) => !q || String(s.title || '').toLowerCase().includes(q));
+      list.innerHTML = filtered.map((s) => `
+        <div class="session ${s.id === currentSessionId ? 'active' : ''}" data-id="${esc(s.id)}">
+          <div class="title">${esc(s.title || s.id)}</div>
+          <div class="meta">${Number(s.messageCount || 0)} messages</div>
         </div>
       `).join('');
+      list.querySelectorAll('.session').forEach((el) => el.addEventListener('click', () => openSession(el.dataset.id)));
     }
 
-    // Send chat message
-    async function sendMessage() {
-      let task = chatInput.value.trim();
-      if (!task || !ws || ws.readyState !== WebSocket.OPEN) return;
-
-      // Handle commands
-      if (task === '/new' || task === '/reset' || task === '/clear') {
-        createNewSession();
-        chatInput.value = '';
-        return;
-      }
-
-      if (task === '/help') {
-        addMessage('system', '📖 Commands: /new (new chat), /help (this message)');
-        chatInput.value = '';
-        return;
-      }
-
-      addMessage('user', task);
-      chatInput.value = '';
-      sendBtn.disabled = true;
-
-      ws.send(JSON.stringify({ type: 'chat', task }));
+    async function refreshSessions() {
+      const out = await jget('/api/sessions');
+      sessions = out.sessions || [];
+      if (!currentSessionId && sessions.length) currentSessionId = sessions[0].id;
+      renderSessions();
+      document.getElementById('statusSession').textContent = `session: ${currentSessionId || '-'}`;
     }
 
-    sendBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
-
-    // Config Panel
-    async function loadConfig() {
-      try {
-        const res = await fetch('/api/config');
-        const config = await res.json();
-        const formEl = document.getElementById('config-form');
-        formEl.innerHTML = `
-          <form id="config-save-form" style="display:grid;gap:12px;max-width:500px;">
-            <div>
-              <label style="display:block;margin-bottom:4px;color:var(--muted);">Provider</label>
-              <input type="text" name="provider" value="${config.provider || ''}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
-            </div>
-            <div>
-              <label style="display:block;margin-bottom:4px;color:var(--muted);">Model</label>
-              <input type="text" name="model" value="${config.model || ''}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
-            </div>
-            <div>
-              <label style="display:block;margin-bottom:4px;color:var(--muted);">Base URL</label>
-              <input type="text" name="baseUrl" value="${config.baseUrl || ''}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
-            </div>
-            <div>
-              <label style="display:block;margin-bottom:4px;color:var(--muted);">UI Port</label>
-              <input type="number" name="uiPort" value="${config.uiPort || 18881}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);" />
-            </div>
-            <div>
-              <label style="display:block;margin-bottom:4px;color:var(--muted);">Autonomy Mode</label>
-              <select name="autonomyMode" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--text);">
-                <option value="relentless" ${config.autonomyMode === 'relentless' ? 'selected' : ''}>Relentless (Full Control)</option>
-                <option value="balanced" ${config.autonomyMode === 'balanced' ? 'selected' : ''}>Balanced</option>
-                <option value="conservative" ${config.autonomyMode === 'conservative' ? 'selected' : ''}>Conservative</option>
-              </select>
-            </div>
-            <button type="submit" style="margin-top:12px;">Save Configuration</button>
-          </form>
-        `;
-        document.getElementById('config-save-form').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          const updated = {
-            provider: formData.get('provider'),
-            model: formData.get('model'),
-            baseUrl: formData.get('baseUrl'),
-            uiPort: parseInt(formData.get('uiPort')),
-            autonomyMode: formData.get('autonomyMode')
-          };
-          try {
-            const res = await fetch('/api/config', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(updated)
-            });
-            const result = await res.json();
-            if (result.success) {
-              addMessage('system', '✅ Configuration saved! Restart required for some changes.');
-            } else {
-              addMessage('system', '❌ Error: ' + (result.error || 'Unknown'));
-            }
-          } catch (err) {
-            addMessage('system', '❌ Error saving: ' + err.message);
-          }
-        });
-      } catch (err) {
-        document.getElementById('config-form').innerHTML = `<div style="color:var(--bad);">Error loading config: ${err.message}</div>`;
-      }
+    async function openSession(id) {
+      currentSessionId = id;
+      renderSessions();
+      const out = await jget(`/api/sessions/${encodeURIComponent(id)}`);
+      const msgs = out.session?.messages || [];
+      const stream = document.getElementById('messageStream');
+      stream.innerHTML = msgs.map((m) => `<div class="bubble ${m.role === 'user' ? 'user' : 'assistant'}">${esc(m.content)}</div>`).join('');
+      stream.scrollTop = stream.scrollHeight;
+      document.getElementById('statusSession').textContent = `session: ${currentSessionId}`;
     }
 
-    // Memory Panel
-    async function searchMemory(query) {
-      try {
-        const res = await fetch(`/api/memory?q=${encodeURIComponent(query)}`);
-        const results = await res.json();
-        const resultsEl = document.getElementById('memory-results');
-        if (!results || results.length === 0) {
-          resultsEl.innerHTML = '<div style="color:var(--muted);">No memories found.</div>';
-          return;
-        }
-        resultsEl.innerHTML = results.map(m => `
-          <div class="card" style="margin-bottom:12px;">
-            <div style="font-size:0.85em;color:var(--muted);margin-bottom:4px;">${new Date(m.timestamp).toLocaleString()}</div>
-            <div style="color:var(--text);">${m.text}</div>
-            ${m.tags ? `<div style="font-size:0.75em;color:var(--accent);margin-top:8px;">Tags: ${m.tags.join(', ')}</div>` : ''}
-          </div>
-        `).join('');
-      } catch (err) {
-        document.getElementById('memory-results').innerHTML = `<div style="color:var(--bad);">Error: ${err.message}</div>`;
-      }
-    }
+    function renderProviderSelectors() {
+      const psel = document.getElementById('providerSelect');
+      psel.innerHTML = providerOrder.map((p) => `<option value="${p}">${p}</option>`).join('');
+      psel.value = providerConfig.provider || 'ollama';
 
-    document.getElementById('memory-search')?.addEventListener('input', (e) => {
-      searchMemory(e.target.value);
-    });
+      const activeProvider = psel.value;
+      const row = (modelCatalog.providers || []).find((x) => x.provider === activeProvider);
+      const msel = document.getElementById('modelSelect');
+      const models = row?.models || [];
+      msel.innerHTML = models.map((m) => `<option value="${esc(m.model_id)}">${esc(m.model_id)}</option>`).join('');
+      const configuredModel = String(providerConfig.model || '').replace(/^.*?\//, '');
+      if ([...msel.options].some((o) => o.value === configuredModel)) msel.value = configuredModel;
 
-    // Sync Panel
-    async function loadSyncStatus() {
-      try {
-        const res = await fetch('/api/git-status');
-        const status = await res.json();
-        const statusEl = document.getElementById('sync-status');
-        statusEl.innerHTML = `
-          <div class="stat-grid" style="margin-bottom:16px;">
-            <div class="stat">
-              <div class="stat-value" style="color:var(--good);">${status.branch || 'N/A'}</div>
-              <div class="stat-label">Branch</div>
-            </div>
-            <div class="stat">
-              <div class="stat-value" style="color:${status.ahead > 0 ? 'var(--warn)' : 'var(--good)'}">${status.ahead || 0}</div>
-              <div class="stat-label">Ahead of Origin</div>
-            </div>
-            <div class="stat">
-              <div class="stat-value" style="color:${status.modified > 0 ? 'var(--warn)' : 'var(--good)'}">${status.modified || 0}</div>
-              <div class="stat-label">Modified Files</div>
-            </div>
-          </div>
-          <div class="card">
-            <h3>Recent Commits</h3>
-            <div style="font-family:monospace;font-size:0.85em;max-height:200px;overflow-y:auto;">
-              ${(status.recentCommits || []).map(c => `<div style="padding:4px 0;border-bottom:1px solid var(--line);">${c.hash?.substring(0,7)} - ${c.message}</div>`).join('') || '<div style="color:var(--muted);">No commits</div>'}
-            </div>
-          </div>
-          <button id="sync-now-btn" style="margin-top:12px;" onclick="syncNow()">Sync Now</button>
-          <div id="sync-message" style="margin-top:12px;"></div>
-        `;
-      } catch (err) {
-        document.getElementById('sync-status').innerHTML = `<div style="color:var(--bad);">Error loading sync status: ${err.message}</div>`;
-      }
-    }
-
-    async function syncNow() {
-      const msgEl = document.getElementById('sync-message');
-      msgEl.innerHTML = '<span style="color:var(--warn);">Syncing...</span>';
-      try {
-        const res = await fetch('/api/git-sync', { method: 'POST' });
-        const result = await res.json();
-        if (result.success) {
-          msgEl.innerHTML = `<span style="color:var(--good);">✅ Synced: ${result.message || 'No changes'}</span>`;
-          setTimeout(loadSyncStatus, 1000);
-        } else {
-          msgEl.innerHTML = `<span style="color:var(--bad);">❌ Error: ${result.error || 'Unknown'}</span>`;
-        }
-      } catch (err) {
-        msgEl.innerHTML = `<span style="color:var(--bad);">❌ Error: ${err.message}</span>`;
-      }
-    }
-
-    // Panel navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', async () => {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        item.classList.add('active');
-        const panelId = item.dataset.panel + '-panel';
-        const panelEl = document.getElementById(panelId);
-        panelEl.classList.add('active');
-        document.getElementById('panel-title').textContent = item.textContent.split(' ')[1] || item.textContent;
-        
-        // Special handling for chat panel - ensure scroll is working
-        if (item.dataset.panel === 'chat') {
-          const messagesEl = document.getElementById('messages');
-          if (messagesEl) {
-            // Force reflow and scroll setup
-            messagesEl.style.overflowY = 'scroll';
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-            console.log('[Chat Panel] Activated, scrollHeight:', messagesEl.scrollHeight, 'clientHeight:', messagesEl.clientHeight);
-          }
-        }
-        
-        if (item.dataset.panel === 'health') {
-          ws.send(JSON.stringify({ type: 'health' }));
-        } else if (item.dataset.panel === 'config') {
-          loadConfig();
-        } else if (item.dataset.panel === 'sync') {
-          loadSyncStatus();
-        }
+      const fsel = document.getElementById('fallbackModelSelect');
+      const all = [];
+      (modelCatalog.providers || []).forEach((provider) => {
+        (provider.models || []).forEach((m) => all.push(`${provider.provider}/${m.model_id}`));
       });
-    });
+      fsel.innerHTML = all.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      if ([...fsel.options].some((o) => o.value === providerConfig.fallbackModel)) fsel.value = providerConfig.fallbackModel;
 
-    // ========== SESSION MANAGEMENT ==========
-    
-    let currentSessionId = null;
-    
-    // Load sessions list
-    async function loadSessions() {
-      try {
-        const res = await fetch('/api/sessions');
-        const sessions = await res.json();
-        renderSessionsList(sessions);
-      } catch (e) {
-        console.error('[Sessions] Failed to load:', e);
-      }
+      document.getElementById('autonomyModeSelect').value = providerConfig.autonomyMode || 'autonomy-first';
     }
-    
-    // Render sessions list in sidebar
-    function renderSessionsList(sessions) {
-      const listEl = document.getElementById('sessions-list');
-      if (!listEl) return;
-      
-      if (!sessions || sessions.length === 0) {
-        listEl.innerHTML = '<div style="font-size:0.8em;color:var(--muted);padding:10px;">No recent chats</div>';
-        return;
-      }
-      
-      listEl.innerHTML = sessions.map(session => {
-        const date = new Date(session.updatedAt);
-        const timeAgo = getTimeAgo(date);
-        const isActive = session.id === currentSessionId ? 'active' : '';
-        
-        return `
-          <div class="session-item ${isActive}" data-session-id="${session.id}" onclick="loadSession('${session.id}')">
-            <div class="session-item-title">${escapeHtml(session.title)}</div>
-            <div class="session-item-meta">
-              <span>${timeAgo} • ${session.messageCount} msgs</span>
-              <button class="session-item-delete" onclick="event.stopPropagation(); deleteSession('${session.id}')" title="Delete">×</button>
-            </div>
-          </div>
-        `;
+
+    function renderProviderHealth() {
+      const root = document.getElementById('providerHealth');
+      root.innerHTML = (modelCatalog.providers || []).map((p) => {
+        const top = p.models?.[0]?.model_id || '-';
+        const cls = p.status === 'healthy' ? 'good' : 'bad';
+        return `<div style="margin-bottom:8px;"><strong>${esc(p.display_name)}</strong> <span class="pill ${cls}">${esc(p.status)}</span><div style="color:var(--muted);font-size:12px;">top: ${esc(top)} | models: ${Number(p.models?.length || 0)}</div></div>`;
       }).join('');
     }
-    
-    // Format time ago
-    function getTimeAgo(date) {
-      const now = new Date();
-      const diffMs = now - date;
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
-      
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      if (diffDays < 7) return `${diffDays}d ago`;
-      
-      return date.toLocaleDateString();
+
+    async function refreshConfigAndCatalog() {
+      const cfg = await jget('/api/config');
+      providerConfig = cfg.providerConfig;
+      modelCatalog = cfg.modelCatalog;
+      renderProviderSelectors();
+      renderProviderHealth();
+      document.getElementById('statusProvider').textContent = `provider: ${providerConfig.provider}`;
+      document.getElementById('statusModel').textContent = `model: ${providerConfig.model}`;
     }
-    
-    // Create new session
-    async function createNewSession() {
-      try {
-        const res = await fetch('/api/sessions', { method: 'POST' });
-        const session = await res.json();
-        currentSessionId = session.id;
-        
-        // Clear chat UI
-        messagesEl.innerHTML = '';
-        addMessage('system', '✨ New chat started. What would you like to do?');
-        
-        // Reload sessions list
-        loadSessions();
-        
-        console.log('[Sessions] Created new session:', session.id);
-      } catch (e) {
-        console.error('[Sessions] Failed to create:', e);
-        addMessage('system', '❌ Error creating new chat');
-      }
+
+    async function newSession() {
+      const out = await jpost('/api/sessions', {});
+      currentSessionId = out.session.id;
+      await refreshSessions();
+      await openSession(currentSessionId);
+      setStatus('new session created');
     }
-    
-    // Load existing session
-    async function loadSession(id) {
-      try {
-        const res = await fetch(`/api/sessions/${id}/load`, { method: 'POST' });
-        const data = await res.json();
-        
-        currentSessionId = id;
-        
-        // Clear and repopulate chat
-        messagesEl.innerHTML = '';
-        
-        if (data.messages && data.messages.length > 0) {
-          data.messages.forEach(msg => {
-            const role = msg.role === 'user' ? 'user' : 'ai';
-            addMessage(role, msg.content);
-          });
-          addMessage('system', `📜 Loaded "${data.session.title}" (${data.messages.length} messages)`);
-        } else {
-          addMessage('system', '📜 Empty session loaded');
-        }
-        
-        // Update active state in sidebar
-        document.querySelectorAll('.session-item').forEach(item => {
-          item.classList.toggle('active', item.dataset.sessionId === id);
-        });
-        
-        // Scroll to bottom
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-        
-        console.log('[Sessions] Loaded session:', id);
-      } catch (e) {
-        console.error('[Sessions] Failed to load:', e);
-        addMessage('system', '❌ Error loading chat');
-      }
+
+    async function sendMessage() {
+      const input = document.getElementById('composerInput');
+      const text = String(input.value || '').trim();
+      if (!text || !currentSessionId) return;
+
+      const stream = document.getElementById('messageStream');
+      stream.innerHTML += `<div class="bubble user">${esc(text)}</div>`;
+      input.value = '';
+      stream.scrollTop = stream.scrollHeight;
+      setStatus('running');
+      appendTrace(`chat.started provider=${providerConfig.provider} model=${providerConfig.model}`);
+
+      const out = await jpost('/api/chat', { sessionId: currentSessionId, message: text });
+      const reply = out.reply || out.response || '(no response)';
+      stream.innerHTML += `<div class="bubble assistant">${esc(reply)}</div>`;
+      stream.scrollTop = stream.scrollHeight;
+      await refreshSessions();
+      setStatus('ready');
+      appendTrace(`chat.completed chars=${String(reply).length}`);
     }
-    
-    // Delete session
-    async function deleteSession(id) {
-      if (!confirm('Delete this chat session?')) return;
-      
-      try {
-        const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
-        const result = await res.json();
-        
-        if (result.deleted) {
-          // If we deleted the current session, create a new one
-          if (id === currentSessionId) {
-            currentSessionId = null;
-            messagesEl.innerHTML = '';
-            addMessage('system', '🗑️ Chat deleted. Starting fresh...');
+
+    async function saveRouting() {
+      const provider = document.getElementById('providerSelect').value;
+      const model = document.getElementById('modelSelect').value;
+      const fallbackModel = document.getElementById('fallbackModelSelect').value;
+      const fallbackProvider = String(fallbackModel).split('/')[0] || 'nvidia';
+      const autonomyMode = document.getElementById('autonomyModeSelect').value;
+      await jpost('/api/config', {
+        providerConfig: {
+          provider,
+          model,
+          fallbackProvider,
+          fallbackModel,
+          autonomyMode,
+        },
+      });
+      await refreshConfigAndCatalog();
+      setStatus('routing saved');
+      appendTrace(`health.updated provider=${provider} model=${provider}/${model}`);
+    }
+
+    function connectWS() {
+      const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+      const ws = new WebSocket(`${protocol}://${location.host}/ws`);
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'event' && msg.event) {
+            appendTrace(`${msg.event.type}`);
           }
-          
-          // Reload sessions list
-          loadSessions();
-          
-          console.log('[Sessions] Deleted:', id);
-        }
-      } catch (e) {
-        console.error('[Sessions] Failed to delete:', e);
-        addMessage('system', '❌ Error deleting chat');
+        } catch {}
+      };
+      ws.onclose = () => setTimeout(connectWS, 1000);
+    }
+
+    document.getElementById('newSessionBtn').addEventListener('click', newSession);
+    document.getElementById('sessionSearch').addEventListener('input', renderSessions);
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('composerInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
       }
-    }
-    
-    // New chat button handler
-    document.getElementById('new-chat-btn')?.addEventListener('click', createNewSession);
-    
-    // ========== INITIALIZATION ==========
-    
-    const historyCount = loadChatHistory();
-    connectWS();
-    
-    // Load sessions on startup
-    loadSessions();
-    
-    if (historyCount === 0) {
-      addMessage('system', '⚡ OpenUnum Qwen ready. What should I do? (Type /help for commands)');
-    } else {
-      addMessage('system', `⚡ Welcome back! ${historyCount} messages restored. Type /new to clear.`);
-    }
+    });
+    document.getElementById('providerSelect').addEventListener('change', () => {
+      providerConfig.provider = document.getElementById('providerSelect').value;
+      renderProviderSelectors();
+    });
+    document.getElementById('saveRoutingBtn').addEventListener('click', saveRouting);
+
+    (async function bootstrap() {
+      connectWS();
+      await refreshConfigAndCatalog();
+      await refreshSessions();
+      if (!currentSessionId) await newSession();
+      else await openSession(currentSessionId);
+      appendTrace('ui.ready');
+    })().catch((e) => {
+      setStatus(`boot error: ${e.message}`);
+    });
   </script>
 </body>
 </html>

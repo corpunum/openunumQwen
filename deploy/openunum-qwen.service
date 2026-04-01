@@ -6,6 +6,8 @@ After=network-online.target
 Type=simple
 WorkingDirectory=%h/openunumQwen
 Environment=NODE_ENV=production
+Environment=UI_HOST=127.0.0.1
+Environment=UI_PORT=18881
 ExecStart=/usr/bin/env node %h/openunumQwen/src/index.js
 Restart=always
 RestartSec=2
