@@ -71,7 +71,7 @@ Web UI default: `http://127.0.0.1:18881`
 
 ## Status
 
-🚧 **Under Construction** — Building the ultimate assistant
+🟢 **Active Development** — Baseline autonomous + WebUI capabilities are implemented and continuously hardened.
 
 ---
 
