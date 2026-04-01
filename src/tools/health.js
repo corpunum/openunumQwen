@@ -72,8 +72,7 @@ export const HealthTool = {
     // 2. Database health
     try {
       const { existsSync } = await import('node:fs');
-      const { join } = await import('node:path');
-      const dbPath = join(process.cwd(), cfg.memoryDbPath || './data/memory.db');
+      const dbPath = cfg.memoryDbPath || './data/memory.db';
       const dbExists = existsSync(dbPath);
       results.checks.database = {
         status: dbExists ? 'healthy' : 'not_initialized',

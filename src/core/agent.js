@@ -19,10 +19,13 @@ const MAX_TOOL_USES = 12;
 export class Agent {
   constructor(options = {}) {
     this.config = loadConfig();
-    this.memory = new MemoryManager();
+    this.memory = new MemoryManager({
+      dbPath: this.config.memoryDbPath,
+      bm25IndexPath: this.config.bm25IndexPath
+    });
     this.circuitBreaker = new CircuitBreaker();
     this.contextManager = new ContextManager();
-    this.sessionManager = new SessionManager();
+    this.sessionManager = new SessionManager({ sessionsDir: this.config.sessionsDir });
     this.sessionHistory = [];
     this.toolFailures = new Map();
     this.toolCounts = new Map();

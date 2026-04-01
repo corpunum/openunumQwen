@@ -43,10 +43,20 @@ cp .env.example .env
 pnpm start
 ```
 
+Web UI default: `http://127.0.0.1:18881`
+
+## Runtime Isolation
+
+- App home: `~/.openunum-qwen` (override with `OPENUNUM_QWEN_HOME`)
+- Config: `~/.openunum-qwen/config.json`
+- Memory DB: `~/.openunum-qwen/data/memory.db`
+- BM25 index: `~/.openunum-qwen/data/bm25_index.json`
+- Logs: `~/.openunum-qwen/logs`
+
 ## Model Support
 
 - **Local:** Ollama (Qwen 3.5 9B, etc.)
-- **Cloud:** OpenAI, Anthropic, NVIDIA NIM, Ollama Cloud
+- **Cloud:** OpenAI, OpenRouter, Anthropic, NVIDIA NIM, Ollama Cloud
 
 ## Features
 

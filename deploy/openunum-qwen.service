@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenUnum Qwen Autonomous Service
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/openunumQwen
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/env node %h/openunumQwen/src/index.js
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

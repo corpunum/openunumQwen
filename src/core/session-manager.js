@@ -13,7 +13,7 @@ const ROOT = join(__dirname, '..', '..');
 
 export class SessionManager {
   constructor(options = {}) {
-    this.sessionsDir = join(ROOT, 'data', 'sessions');
+    this.sessionsDir = options.sessionsDir || join(ROOT, 'data', 'sessions');
     this.currentSessionId = null;
     
     // Ensure directory exists

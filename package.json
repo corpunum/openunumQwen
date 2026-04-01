@@ -11,9 +11,15 @@
     "sync": "node scripts/git-sync.js",
     "health": "node scripts/health-check.js",
     "init": "node scripts/init.js",
-    "research": "node scripts/research-agent.js"
+    "research": "node scripts/research-agent.js",
+    "e2e:webui": "node tests/e2e.test.js"
   },
-  "keywords": ["autonomous", "agent", "ai", "self-healing"],
+  "keywords": [
+    "autonomous",
+    "agent",
+    "ai",
+    "self-healing"
+  ],
   "author": "Antonis",
   "license": "MIT",
   "dependencies": {

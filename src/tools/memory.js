@@ -7,9 +7,12 @@ import { MemoryManager } from '../memory/memory.js';
 
 let memoryManager = null;
 
-function getManager() {
+function getManager(config) {
   if (!memoryManager) {
-    memoryManager = new MemoryManager();
+    memoryManager = new MemoryManager({
+      dbPath: config?.memoryDbPath,
+      bm25IndexPath: config?.bm25IndexPath
+    });
   }
   return memoryManager;
 }
@@ -22,7 +25,7 @@ export const MemoryTool = {
       throw new Error('Text required for memory_store');
     }
 
-    const manager = getManager();
+    const manager = getManager(config);
     await manager.initialize();
 
     const memoryId = id || `mem_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -42,7 +45,7 @@ export const MemoryTool = {
       throw new Error('Query required for memory_search');
     }
 
-    const manager = getManager();
+    const manager = getManager(config);
     await manager.initialize();
 
     const results = manager.search(query, topK);
@@ -67,7 +70,7 @@ export const MemoryTool = {
       throw new Error('ID required for memory_get');
     }
 
-    const manager = getManager();
+    const manager = getManager(config);
     await manager.initialize();
 
     const memory = manager.get(id);
@@ -92,7 +95,7 @@ export const MemoryTool = {
       throw new Error('ID required for memory_delete');
     }
 
-    const manager = getManager();
+    const manager = getManager(config);
     await manager.initialize();
 
     manager.delete(id);
@@ -103,7 +106,7 @@ export const MemoryTool = {
   async list(args, config) {
     const { limit = 20 } = args;
 
-    const manager = getManager();
+    const manager = getManager(config);
     await manager.initialize();
 
     const memories = manager.getAll(limit);
