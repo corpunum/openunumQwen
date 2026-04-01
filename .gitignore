@@ -10,3 +10,7 @@ tmp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Runtime chat sessions (do not track)
+data/sessions/*.json
+!data/sessions/.gitkeep
