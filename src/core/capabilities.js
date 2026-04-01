@@ -5,10 +5,10 @@ export function getCapabilities(config) {
     app_name: 'OpenUnum Qwen',
     menu: ['chat', 'missions', 'trace', 'runtime', 'settings'],
     quick_prompts: [
-      'Inspect the current repository and summarize the highest-risk code path.',
-      'Create a small test that proves this bug is fixed.',
-      'Plan and implement a mission to harden runtime health handling.',
-      'Review recent changes and list the most likely regressions.',
+      'Run an autonomous repository audit and summarize top technical risks.',
+      'Execute an auto-sync safety check and report drift from HEAD.',
+      'Create and validate a focused patch with tests.',
+      'Start a mission to harden provider fallback behavior.',
     ],
     features: {
       chat: true,
@@ -20,12 +20,15 @@ export function getCapabilities(config) {
       self_heal: true,
       browser_control: true,
       git_runtime: true,
+      auto_sync: true,
+      context_compaction: true,
       memory_inspection: false,
       research: false,
     },
     ui: {
       shell: 'shared-autonomy-v1',
       chat_style: 'imessage',
+      skin: 'qwen-emerald',
     },
     runtime: {
       host: config.host,
