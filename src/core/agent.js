@@ -9,6 +9,8 @@ import { loadConfig, getConfig } from './config.js';
 import { CircuitBreaker } from '../health/circuit-breaker.js';
 import { MemoryManager } from '../memory/memory.js';
 import { ContextManager } from './context-manager.js';
+import { UnifiedContextManager } from './unified-context-manager.js';
+import { WorkingMemoryAnchor } from './working-memory-anchor.js';
 import { SessionManager } from './session-manager.js';
 
 const MAX_ITERATIONS = 50;
