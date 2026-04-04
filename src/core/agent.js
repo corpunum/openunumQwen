@@ -27,6 +27,10 @@ export class Agent {
     });
     this.circuitBreaker = new CircuitBreaker();
     this.contextManager = new ContextManager();
+    this.unifiedContextManager = new UnifiedContextManager({
+      workspaceRoot: process.cwd(),
+      memoryManager: null // Will be set after memory initialization
+    });
     this.sessionManager = new SessionManager({ sessionsDir: this.config.sessionsDir });
     this.sessionHistory = [];
     this.toolFailures = new Map();
